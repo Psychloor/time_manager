@@ -104,6 +104,7 @@ void TmDestroy(TimeManager* tm)
         return;
     }
     free(tm);
+    tm = NULL;
 }
 
 FrameTimingData TmBeginFrame(TimeManager* tm)
