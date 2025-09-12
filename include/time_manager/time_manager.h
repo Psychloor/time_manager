@@ -336,7 +336,6 @@ TIME_MANAGER_API void TmPause(TimeManager* tm);
  */
 TIME_MANAGER_API void TmResume(TimeManager* tm);
 
-
 /**
  * @brief Determines if the TimeManager is currently paused.
  *
