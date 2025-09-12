@@ -41,7 +41,6 @@ if(TIME_MANAGER_BUILD_SHARED)
 else()
     add_library(${PROJECT_NAME} STATIC)
     target_compile_definitions(${PROJECT_NAME} PUBLIC TIME_MANAGER_STATIC)
-    target_compile_definitions(${PROJECT_NAME} PUBLIC TIME_MANAGER_STATIC_DEFINE)
     message(STATUS "Building time_manager as STATIC library")
 endif()
 
@@ -63,6 +62,7 @@ GENERATE_EXPORT_HEADER(${PROJECT_NAME}
         EXPORT_MACRO_NAME TIME_MANAGER_API
         BASE_NAME TIME_MANAGER
         EXPORT_FILE_NAME time_manager/time_manager_export.h
+        STATIC_DEFINE TIME_MANAGER_STATIC
 )
 
 # Add sources
