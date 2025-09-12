@@ -151,12 +151,6 @@ void TmSetPhysicsHz(TimeManager* tm,const size_t physicsHz)
     tm->physicsTimeStep = 1.0 / (double)physicsHz;
 }
 
-void TmSetPhysicsTimeStep(TimeManager* tm,const double physicsTimeStep)
-{
-    assert(tm != NULL && "TimeManager pointer is null!");
-    tm->physicsTimeStep = physicsTimeStep;
-}
-
 void TmSetMaxFrameTime(TimeManager* tm,const double maxFrameTime)
 {
     assert(tm != NULL && "TimeManager pointer is null!");

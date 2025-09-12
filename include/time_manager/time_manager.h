@@ -169,18 +169,6 @@ TIME_MANAGER_API FrameTimingData TmBeginFrame(TimeManager* tm);
 TIME_MANAGER_API void TmSetPhysicsHz(TimeManager* tm, size_t physicsHz);
 
 /**
- * @brief Sets the physics time step for the physics simulation within the time manager.
- *
- * Updates the time step interval used for advancing the physics simulation. The configured
- * time step determines the simulated time duration for each physics update. This function
- * ensures that the time step value in the TimeManager structure is updated correctly.
- *
- * @param tm Pointer to the TimeManager structure containing the time management settings.
- * @param physicsTimeStep The new physics time step interval, represented in seconds.
- */
-TIME_MANAGER_API void TmSetPhysicsTimeStep(TimeManager* tm, double physicsTimeStep);
-
-/**
  * @brief Sets the maximum allowable frame time for the physics system.
  *
  * Updates the maximum frame time value within the provided TimeManager structure.
