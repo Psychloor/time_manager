@@ -1,4 +1,6 @@
-﻿# Time Manager
+[![CMake on multiple platforms](https://github.com/Psychloor/time_manager/actions/workflows/cmake-multi-platform.yml/badge.svg)](https://github.com/Psychloor/time_manager/actions/workflows/cmake-multi-platform.yml)
+ 
+# Time Manager
 
 A robust C library for game timing and physics simulation, implementing the fixed timestep with interpolation pattern from Glenn Fiedler's seminal article ["Fix Your Timestep!"](https://gafferongames.com/post/fix_your_timestep/).
 
