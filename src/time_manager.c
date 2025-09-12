@@ -80,8 +80,9 @@ void InitTimeManager(TimeManager* tm, const TimeManagerConfig* config)
 
 TimeManager* TmCreate(const TimeManagerConfig* config)
 {
+    TimeManager* tm = malloc(sizeof *tm);
+    memset(tm, 0, sizeof *tm);
 
-    TimeManager* tm = malloc(sizeof(TimeManager));
     if (tm)
     {
         if (!config)
