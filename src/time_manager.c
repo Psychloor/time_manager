@@ -1,0 +1,204 @@
+﻿//
+// Created by blomq on 2025-09-12.
+//
+
+#include "time_manager/time_manager.h"
+
+#include <math.h>
+
+void UpdateFpsStats(TimeManager* tm, const double frameTime)
+{
+    tm->fpsAccumulator += frameTime;
+    tm->fpsFrameCount++;
+
+    if (tm->fpsAccumulator >= 1.0)
+    {
+        tm->averageFps = (double)tm->fpsFrameCount / tm->fpsAccumulator;
+        tm->fpsAccumulator = 0.0;
+        tm->fpsFrameCount = 0;
+    }
+}
+
+void InitTimeManager(TimeManager* tm)
+{
+    tm->physicsHz = 60;
+    tm->physicsTimeStep = 1.0 / tm->physicsHz;
+    tm->maxFrameTime = 0.25;
+    tm->maxPhysicsSteps = 5;
+    tm->timeScale = 1.0;
+    tm->accumulator = 0.0;
+    tm->lastTime = GetTime();
+    tm->firstFrame = true;
+    tm->physicsStepsThisFrame = 0;
+    tm->averageFps = 0.0;
+    tm->fpsAccumulator = 0.0;
+    tm->fpsFrameCount = 0;
+    tm->timeScaleBeforePause = 1.0;
+}
+
+FrameTimingData TmBeginFrame(TimeManager* tm)
+{
+    if (tm->firstFrame)
+    {
+        tm->firstFrame = false;
+        tm->lastTime = GetTime();
+        return (FrameTimingData){
+            .physicsSteps = 0,
+            .fixedTimestep = tm->physicsTimeStep,
+            .interpolationAlpha = 0.0,
+            .frameTime = 0.0,
+            .lagging = false,
+            .rawFrameTime = 0.0,
+            .unscaledFrameTime = 0.0,
+            .currentTimeScale = tm->timeScale
+        };
+    }
+
+    const HighResTimeT currentTime = GetTime();
+    const double deltaTime = (currentTime.nanoseconds - tm->lastTime.nanoseconds) / 1000000000.0;
+    const double cappedDeltaTime = fmin(deltaTime, tm->maxFrameTime);
+    tm->lastTime = currentTime;
+
+    const double scaledFrameTime = cappedDeltaTime * tm->timeScale;
+    tm->accumulator += scaledFrameTime;
+    tm->physicsStepsThisFrame = 0;
+
+    while (tm->accumulator >= tm->physicsTimeStep && tm->physicsStepsThisFrame < tm->
+        maxPhysicsSteps)
+    {
+        ++tm->physicsStepsThisFrame;
+        tm->accumulator -= tm->physicsTimeStep;
+    }
+
+    const bool lagging = tm->accumulator >= tm->physicsTimeStep;
+    if (lagging)
+    {
+        // If we're lagging, keep only the remainder of a timestep
+        tm->accumulator = fmod(tm->accumulator, tm->physicsTimeStep);
+    }
+
+    // Calculate interpolation alpha
+    const double alpha = tm->accumulator / tm->physicsTimeStep;
+
+    UpdateFpsStats(tm, cappedDeltaTime);
+
+    return (FrameTimingData){
+        .physicsSteps = tm->physicsStepsThisFrame,
+        .fixedTimestep = tm->physicsTimeStep,
+        .interpolationAlpha = alpha,
+        .frameTime = scaledFrameTime,
+        .lagging = lagging,
+        .rawFrameTime = deltaTime,
+        .unscaledFrameTime = cappedDeltaTime,
+        .currentTimeScale = tm->timeScale
+    };
+}
+
+void TmSetPhysicsHz(TimeManager* tm,const size_t physicsHz)
+{
+    if (physicsHz == 0)
+    {
+        return;
+    }
+
+    tm->physicsHz = physicsHz;
+    tm->physicsTimeStep = 1.0 / (double)physicsHz;
+}
+
+void TmSetPhysicsTimeStep(TimeManager* tm,const double physicsTimeStep)
+{
+    tm->physicsTimeStep = physicsTimeStep;
+}
+
+void TmSetMaxFrameTime(TimeManager* tm,const double maxFrameTime)
+{
+    tm->maxFrameTime = maxFrameTime;
+}
+
+void TmSetMaxPhysicsSteps(TimeManager* tm,const size_t maxPhysicsSteps)
+{
+    tm->maxPhysicsSteps = maxPhysicsSteps;
+}
+
+void TmSetTimeScale(TimeManager* tm,const double timeScale)
+{
+    tm->timeScale = timeScale;
+}
+
+double TmGetAccumulatedTime(const TimeManager* tm)
+{
+    return tm->accumulator;
+}
+
+double TmGetTimeScale(const TimeManager* tm)
+{
+    return tm->timeScale;
+}
+
+double TmGetPhysicsTimeStep(const TimeManager* tm)
+{
+    return tm->physicsTimeStep;
+}
+
+double TmGetMaxFrameTime(const TimeManager* tm)
+{
+    return tm->maxFrameTime;
+}
+
+size_t TmGetMaxPhysicsSteps(const TimeManager* tm)
+{
+    return tm->maxPhysicsSteps;
+}
+
+size_t TmGetPhysicsHz(const TimeManager* tm)
+{
+    return tm->physicsHz;
+}
+
+double TmGetAverageFps(const TimeManager* tm)
+{
+    return tm->averageFps;
+}
+
+double TmGetFrameTime(const TimeManager* tm)
+{
+    return tm->accumulator;
+}
+
+size_t TmGetPhysicsSteps(const TimeManager* tm)
+{
+    return tm->physicsStepsThisFrame;
+}
+
+double TmGetInterpolationAlpha(const TimeManager* tm)
+{
+    return tm->accumulator / tm->physicsTimeStep;
+}
+
+void TmReset(TimeManager* tm)
+{
+    tm->firstFrame = true;
+    tm->accumulator = 0.0;
+    tm->lastTime = GetTime();
+    tm->physicsStepsThisFrame = 0;
+    tm->fpsAccumulator = 0.0;
+    tm->fpsFrameCount = 0;
+    tm->timeScale = 1.0;
+    tm->averageFps = 0.0;
+}
+
+void TmPause(TimeManager* tm)
+{
+    tm->timeScaleBeforePause = tm->timeScale;
+    tm->timeScale = 0.0;
+}
+
+void TmResume(TimeManager* tm)
+{
+    tm->timeScale = tm->timeScaleBeforePause;
+}
+
+bool TmIsPaused(const TimeManager* tm)
+{
+    return fabs(tm->timeScale) < 0.000001;
+}
