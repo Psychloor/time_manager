@@ -62,6 +62,7 @@ static int test_defaults_and_setters(void) {
         .physicsHz = 120,
         .maxPhysicsSteps = 10,
         .maxFrameTime = 0.1,
+        .timeScale = 1.8
     };
     TmDestroy(tm);
     tm = TmCreate(&config);
@@ -69,7 +70,7 @@ static int test_defaults_and_setters(void) {
     ASSERT_NEAR(TmGetPhysicsTimeStep(tm), 1.0/120.0, 1e-12);
     ASSERT_NEAR(TmGetMaxFrameTime(tm), 0.1, 1e-12);
     ASSERT_EQ_SIZE(TmGetMaxPhysicsSteps(tm), 10);
-    ASSERT_NEAR(TmGetTimeScale(tm), 1.0, 1e-12);
+    ASSERT_NEAR(TmGetTimeScale(tm), 1.8, 1e-12);
 
     // Set via Hz
     TmSetPhysicsHz(tm, 120);
