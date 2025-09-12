@@ -8,6 +8,12 @@
 #include <float.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
+
+static const size_t DEFAULT_PHYSICS_HZ = 60;
+static const double DEFAULT_MAX_FRAME_TIME = 0.25;
+static const size_t DEFAULT_MAX_PHYSICS_STEPS = 5;
+static const double DEFAULT_TIME_SCALE = 1.0;
 
 struct TimeManager
 {
@@ -56,11 +62,11 @@ void UpdateFpsStats(TimeManager* tm, const double frameTime)
 
 void InitTimeManager(TimeManager* tm, const TimeManagerConfig* config)
 {
-    tm->physicsHz = config->physicsHz > 0 ? config->physicsHz : 60;
+    tm->physicsHz = config->physicsHz > 0 ? config->physicsHz : DEFAULT_PHYSICS_HZ;
     tm->physicsTimeStep = 1.0 / (double)tm->physicsHz;
-    tm->maxFrameTime = config->maxFrameTime > 0.0 ? config->maxFrameTime : 0.25;
-    tm->maxPhysicsSteps = config->maxPhysicsSteps > 0 ? config->maxPhysicsSteps : 5;
-    tm->timeScale = config->timeScale > 0.0 ? config->timeScale : 1.0;
+    tm->maxFrameTime = config->maxFrameTime > 0.0 ? config->maxFrameTime : DEFAULT_MAX_FRAME_TIME;
+    tm->maxPhysicsSteps = config->maxPhysicsSteps > 0 ? config->maxPhysicsSteps : DEFAULT_MAX_PHYSICS_STEPS;
+    tm->timeScale = config->timeScale > 0.0 ? config->timeScale : DEFAULT_TIME_SCALE;
     tm->accumulator = 0.0;
     tm->now = GetHighResolutionTime;
     tm->lastTime = tm->now();
@@ -69,7 +75,7 @@ void InitTimeManager(TimeManager* tm, const TimeManagerConfig* config)
     tm->averageFps = 0.0;
     tm->fpsAccumulator = 0.0;
     tm->fpsFrameCount = 0;
-    tm->timeScaleBeforePause = 1.0;
+    tm->timeScaleBeforePause = DEFAULT_TIME_SCALE;
 }
 
 TimeManager* TmCreate(const TimeManagerConfig* config)
@@ -123,7 +129,8 @@ FrameTimingData TmBeginFrame(TimeManager* tm)
     assert(tm->physicsTimeStep > 0.0 && "physicsTimeStep must be > 0");
 
     const HighResTimeT currentTime = tm->now();
-    const double deltaTime = fmax((double)(currentTime.nanoseconds - tm->lastTime.nanoseconds) / 1000000000.0, DBL_EPSILON);
+    const double deltaTime = fmax((double)(currentTime.nanoseconds - tm->lastTime.nanoseconds) / 1000000000.0,
+                                  DBL_EPSILON);
     const double cappedDeltaTime = fmin(deltaTime, tm->maxFrameTime);
     const double scaledFrameTime = cappedDeltaTime * tm->timeScale;
     tm->lastTime = currentTime;
