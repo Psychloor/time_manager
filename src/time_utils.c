@@ -4,7 +4,8 @@
 
 #include "time_manager/utils/time_utils.h"
 
-HighResTimeT GetHighResolutionTime(void) {
+HighResTimeT GetHighResolutionTime(void)
+{
     HighResTimeT result;
 
     #ifdef _WIN32

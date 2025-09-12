@@ -24,6 +24,14 @@ typedef struct
     long long nanoseconds;
 } HighResTimeT;
 
+/**
+ * @brief Gets the current high-resolution time
+ *
+ * Uses QueryPerformanceCounter on Windows and clock_gettime(CLOCK_MONOTONIC)
+ * on POSIX systems to provide nanosecond-precision timestamps.
+ *
+ * @return Current time as nanoseconds in a HighResTimeT structure
+ */
 TIME_MANAGER_API HighResTimeT GetHighResolutionTime(void);
 
 #ifdef __cplusplus
