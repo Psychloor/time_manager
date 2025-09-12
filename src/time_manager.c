@@ -9,6 +9,11 @@
 #include <math.h>
 #include <stdlib.h>
 
+#define DEFAULT_PHYSICS_HZ 60
+#define DEFAULT_PHYSICS_TIME_STEP (1.0 / DEFAULT_PHYSICS_HZ)
+#define DEFAULT_MAX_FRAME_TIME 0.25
+#define DEFAULT_MAX_PHYSICS_STEPS 5
+
 struct TimeManager
 {
     size_t physicsHz;
@@ -57,10 +62,10 @@ void UpdateFpsStats(TimeManager* tm, const double frameTime)
 void InitTimeManager(TimeManager* tm)
 {
     assert(tm != NULL && "TimeManager pointer is null!");
-    tm->physicsHz = 60; // NOLINT(*-avoid-magic-numbers)
-    tm->physicsTimeStep = 1.0 / (double)tm->physicsHz;
-    tm->maxFrameTime = 0.25; // NOLINT(*-avoid-magic-numbers)
-    tm->maxPhysicsSteps = 5; // NOLINT(*-avoid-magic-numbers)
+    tm->physicsHz = DEFAULT_PHYSICS_HZ;
+    tm->physicsTimeStep = DEFAULT_PHYSICS_TIME_STEP;
+    tm->maxFrameTime = DEFAULT_MAX_FRAME_TIME;
+    tm->maxPhysicsSteps = DEFAULT_MAX_PHYSICS_STEPS;
     tm->timeScale = 1.0;
     tm->accumulator = 0.0;
     tm->now = GetHighResolutionTime;
@@ -107,10 +112,10 @@ FrameTimingData TmBeginFrame(TimeManager* tm)
     assert(tm->physicsTimeStep > 0.0 && "physicsTimeStep must be > 0");
 
     const HighResTimeT currentTime = tm->now();
-    const double deltaTime = fmax((double)(currentTime.nanoseconds - tm->lastTime.nanoseconds) / 1000000000.0, 0.0);
-    const double cappedDeltaTime = fmin(deltaTime, tm->maxFrameTime);
     tm->lastTime = currentTime;
 
+    const double deltaTime = fmax((double)(currentTime.nanoseconds - tm->lastTime.nanoseconds) / 1000000000.0, 0.0);
+    const double cappedDeltaTime = fmin(deltaTime, tm->maxFrameTime);
     const double scaledFrameTime = cappedDeltaTime * tm->timeScale;
     tm->accumulator += scaledFrameTime;
 
