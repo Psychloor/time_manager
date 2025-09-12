@@ -36,6 +36,11 @@ struct TimeManager
     HighResTimeT (*now)(void);
 };
 
+static inline double Clamp(const double x, const double min, const double max)
+{
+    return fmax(fmin(x, max), min);
+}
+
 void UpdateFpsStats(TimeManager* tm, const double frameTime)
 {
     tm->fpsAccumulator += frameTime;
@@ -99,9 +104,10 @@ FrameTimingData TmBeginFrame(TimeManager* tm)
             .currentTimeScale = tm->timeScale
         };
     }
+    assert(tm->physicsTimeStep > 0.0 && "physicsTimeStep must be > 0");
 
     const HighResTimeT currentTime = tm->now();
-    const double deltaTime = (double)(currentTime.nanoseconds - tm->lastTime.nanoseconds) / 1000000000.0;
+    const double deltaTime = fmax((double)(currentTime.nanoseconds - tm->lastTime.nanoseconds) / 1000000000.0, 0.0);
     const double cappedDeltaTime = fmin(deltaTime, tm->maxFrameTime);
     tm->lastTime = currentTime;
 
@@ -111,17 +117,15 @@ FrameTimingData TmBeginFrame(TimeManager* tm)
     const double stepsD = floor((tm->accumulator + 1e-12) / tm->physicsTimeStep);
     const bool lagging = stepsD > (double)tm->maxPhysicsSteps;
     const size_t steps = lagging ? tm->maxPhysicsSteps : (size_t)stepsD;
+    tm->physicsStepsThisFrame = steps;
 
-    const double remainder = fmod(tm->accumulator, tm->physicsTimeStep);
+    double remainder = fmod(tm->accumulator, tm->physicsTimeStep);
+    if (remainder < 0.0) { remainder += tm->physicsTimeStep; }
 
-    if (lagging) {
-        tm->accumulator = remainder;
-    } else {
-        tm->accumulator -= tm->physicsTimeStep * (double)steps;
-    }
+    tm->accumulator = remainder;
 
     // Calculate interpolation alpha
-    const double alpha = tm->accumulator / tm->physicsTimeStep;
+    const double alpha = Clamp(tm->accumulator / tm->physicsTimeStep, 0.0, 1.0);
 
     UpdateFpsStats(tm, deltaTime);
 
