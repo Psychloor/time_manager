@@ -4,6 +4,7 @@
 
 #include "time_manager/time_manager.h"
 
+#include <assert.h>
 #include <math.h>
 
 void UpdateFpsStats(TimeManager* tm, const double frameTime)
@@ -21,6 +22,7 @@ void UpdateFpsStats(TimeManager* tm, const double frameTime)
 
 void InitTimeManager(TimeManager* tm)
 {
+    assert(tm != NULL && "TimeManager pointer is null!");
     tm->physicsHz = 60;
     tm->physicsTimeStep = 1.0 / tm->physicsHz;
     tm->maxFrameTime = 0.25;
@@ -38,6 +40,7 @@ void InitTimeManager(TimeManager* tm)
 
 FrameTimingData TmBeginFrame(TimeManager* tm)
 {
+    assert(tm != NULL && "TimeManager pointer is null!");
     if (tm->firstFrame)
     {
         tm->firstFrame = false;
@@ -96,6 +99,7 @@ FrameTimingData TmBeginFrame(TimeManager* tm)
 
 void TmSetPhysicsHz(TimeManager* tm,const size_t physicsHz)
 {
+    assert(tm != NULL && "TimeManager pointer is null!");
     if (physicsHz == 0)
     {
         return;
@@ -107,76 +111,91 @@ void TmSetPhysicsHz(TimeManager* tm,const size_t physicsHz)
 
 void TmSetPhysicsTimeStep(TimeManager* tm,const double physicsTimeStep)
 {
+    assert(tm != NULL && "TimeManager pointer is null!");
     tm->physicsTimeStep = physicsTimeStep;
 }
 
 void TmSetMaxFrameTime(TimeManager* tm,const double maxFrameTime)
 {
+    assert(tm != NULL && "TimeManager pointer is null!");
     tm->maxFrameTime = maxFrameTime;
 }
 
 void TmSetMaxPhysicsSteps(TimeManager* tm,const size_t maxPhysicsSteps)
 {
+    assert(tm != NULL && "TimeManager pointer is null!");
     tm->maxPhysicsSteps = maxPhysicsSteps;
 }
 
 void TmSetTimeScale(TimeManager* tm,const double timeScale)
 {
+    assert(tm != NULL && "TimeManager pointer is null!");
     tm->timeScale = timeScale;
 }
 
 double TmGetAccumulatedTime(const TimeManager* tm)
 {
+    assert(tm != NULL && "TimeManager pointer is null!");
     return tm->accumulator;
 }
 
 double TmGetTimeScale(const TimeManager* tm)
 {
+    assert(tm != NULL && "TimeManager pointer is null!");
     return tm->timeScale;
 }
 
 double TmGetPhysicsTimeStep(const TimeManager* tm)
 {
+    assert(tm != NULL && "TimeManager pointer is null!");
     return tm->physicsTimeStep;
 }
 
 double TmGetMaxFrameTime(const TimeManager* tm)
 {
+    assert(tm != NULL && "TimeManager pointer is null!");
     return tm->maxFrameTime;
 }
 
 size_t TmGetMaxPhysicsSteps(const TimeManager* tm)
 {
+    assert(tm != NULL && "TimeManager pointer is null!");
     return tm->maxPhysicsSteps;
 }
 
 size_t TmGetPhysicsHz(const TimeManager* tm)
 {
+    assert(tm != NULL && "TimeManager pointer is null!");
     return tm->physicsHz;
 }
 
 double TmGetAverageFps(const TimeManager* tm)
 {
+    assert(tm != NULL && "TimeManager pointer is null!");
     return tm->averageFps;
 }
 
 double TmGetFrameTime(const TimeManager* tm)
 {
+    assert(tm != NULL && "TimeManager pointer is null!");
     return tm->accumulator;
 }
 
 size_t TmGetPhysicsSteps(const TimeManager* tm)
 {
+    assert(tm != NULL && "TimeManager pointer is null!");
     return tm->physicsStepsThisFrame;
 }
 
 double TmGetInterpolationAlpha(const TimeManager* tm)
 {
+    assert(tm != NULL && "TimeManager pointer is null!");
     return tm->accumulator / tm->physicsTimeStep;
 }
 
 void TmReset(TimeManager* tm)
 {
+    assert(tm != NULL && "TimeManager pointer is null!");
     tm->firstFrame = true;
     tm->accumulator = 0.0;
     tm->lastTime = GetHighResolutionTime();
@@ -189,16 +208,19 @@ void TmReset(TimeManager* tm)
 
 void TmPause(TimeManager* tm)
 {
+    assert(tm != NULL && "TimeManager pointer is null!");
     tm->timeScaleBeforePause = tm->timeScale;
     tm->timeScale = 0.0;
 }
 
 void TmResume(TimeManager* tm)
 {
+    assert(tm != NULL && "TimeManager pointer is null!");
     tm->timeScale = tm->timeScaleBeforePause;
 }
 
 bool TmIsPaused(const TimeManager* tm)
 {
+    assert(tm != NULL && "TimeManager pointer is null!");
     return fabs(tm->timeScale) < 0.000001;
 }
