@@ -13,6 +13,7 @@ set(TIMEMANAGER_HEADERS
 )
 
 add_library(${PROJECT_NAME} SHARED)
+add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 # Make symbols hidden by default on GCC/Clang; export only what you mark
 set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -43,3 +44,28 @@ target_include_directories(${PROJECT_NAME}
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
         $<INSTALL_INTERFACE:include>
 )
+
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    include(GNUInstallDirs)
+
+    # Install the library and its public headers (from FILE_SET)
+    install(TARGETS ${PROJECT_NAME}
+            EXPORT ${PROJECT_NAME}Targets
+            FILE_SET HEADERS
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+
+    # Install the generated export header from the build tree
+    install(FILES
+            ${CMAKE_CURRENT_BINARY_DIR}/time_manager/time_manager_export.h
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/time_manager
+    )
+
+    # Export targets for find_package usage by consumers
+    install(EXPORT ${PROJECT_NAME}Targets
+            NAMESPACE ${PROJECT_NAME}::
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+    )
+endif()
