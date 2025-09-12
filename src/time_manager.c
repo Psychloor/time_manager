@@ -58,14 +58,11 @@ void InitTimeManager(TimeManager* tm, const TimeManagerConfig* config)
 {
     assert(tm != NULL && "TimeManager pointer is null!");
     assert(config != NULL && "TimeManagerConfig pointer is null!");
-    assert(config->physicsHz > 0 && "PhysicsHz must be > 0");
-    assert(config->maxFrameTime > 0.0 && "MaxFrameTime must be > 0.0");
-    assert(config->maxPhysicsSteps > 0 && "MaxPhysicsSteps must be > 0");
 
-    tm->physicsHz = config->physicsHz;
+    tm->physicsHz = config->physicsHz > 0 ? config->physicsHz : 60;
     tm->physicsTimeStep = 1.0 / (double)tm->physicsHz;
-    tm->maxFrameTime = config->maxFrameTime;
-    tm->maxPhysicsSteps = config->maxPhysicsSteps;
+    tm->maxFrameTime = config->maxFrameTime > 0.0 ? config->maxFrameTime : 0.25;
+    tm->maxPhysicsSteps = config->maxPhysicsSteps > 0 ? config->maxPhysicsSteps : 5;
     tm->timeScale = 1.0;
     tm->accumulator = 0.0;
     tm->now = GetHighResolutionTime;
