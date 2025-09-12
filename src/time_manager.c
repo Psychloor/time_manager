@@ -78,20 +78,10 @@ void InitTimeManager(TimeManager* tm, const TimeManagerConfig* config)
     tm->timeScaleBeforePause = 1.0;
 }
 
-TimeManager* TmCreate(void)
+TimeManager* TmCreate(const TimeManagerConfig* config)
 {
-    TimeManager* tm = calloc(1, sizeof(TimeManager));
-    if (tm)
-    {
-        const TimeManagerConfig defaultConfig = TmDefaultConfig();
-        InitTimeManager(tm, &defaultConfig);
-    }
-    return tm;
-}
 
-TimeManager* TmCreateWithConfig(const TimeManagerConfig* config)
-{
-    TimeManager* tm = calloc(1, sizeof(TimeManager));
+    TimeManager* tm = malloc(sizeof(TimeManager));
     if (tm)
     {
         if (!config)

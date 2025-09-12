@@ -103,7 +103,7 @@ void render(GameObject* obj, double alpha) {
 
 int main() {
     // Initialize time manager
-    TimeManager* tm = TmCreate();
+    TimeManager* tm = TmCreate(NULL);
     
     // Optional: Configure physics rate (default is 60 Hz)
     TmSetPhysicsHz(tm, 120);  // 120 physics updates per second
@@ -152,10 +152,7 @@ lagging = stepsD > maxPhysicsSteps
 steps = lagging ? maxPhysicsSteps : stepsD
 
 remainder = fmod(accumulator, physicsTimestep)
-if lagging:
-    accumulator = remainder         # preserve only the < dt remainder
-else:
-    accumulator -= steps * physicsTimestep
+accumulator = remainder # preserve only the < dt remainder
 
 alpha = accumulator / physicsTimestep
 ```
@@ -168,13 +165,13 @@ alpha = accumulator / physicsTimestep
 renderPosition = previousState + (currentState - previousState) * alpha
 ```
 ### Spiral of Death Prevention
-Limits maximum physics steps per frame. When clamped, backlog beyond a single-step remainder is discarded, preventing the simulation from getting stuck trying to catch up.
+Limits maximum physics steps per frame. When clamped, the backlog beyond a single-step remainder is discarded, preventing the simulation from getting stuck trying to catch up.
 
 ## API Reference
 
 ### Initialization
 ```c
-TimeManager* tm = TmCreate(); // Initialize with defaults (60 Hz physics), NULL if memory allocation fails
+TimeManager* tm = TmCreate(NULL); // Initialize with defaults (60 Hz physics), NULL if memory allocation fails
 TmDestroy(tm);  // Free memory allocated for TimeManager;
 ```
 ### Frame Processing
@@ -201,7 +198,7 @@ TmSetTimeScale(tm, 0.5);        // Time scaling (0.5 = half speed)
 ```c
 TmPause(tm);                     // Pause time progression
 TmResume(tm);                    // Resume from pause
-bool paused = TmIsPaused(tm);   // Check pause state
+bool paused = TmIsPaused(tm);    // Check pause state
 ```
 ### Monitoring
 ```c
@@ -236,10 +233,10 @@ TmReset(&tm);  // Reset all timing data
 - Store and interpolate between previous and current physics states
 
 ### Simulation runs too fast/slow
-- Check time scale isn't modified: `TmGetTimeScale(&tm)`
+- Check timescale isn't modified: `TmGetTimeScale(&tm)`
 - Verify physics timestep matches your physics engine expectations
 
-### "Lagging" frequently true
+### "Lagging" is frequently true
 - Reduce physics rate or optimize physics code
 - Increase `maxPhysicsSteps` (but beware of spiral of death)
 - Consider dynamic quality adjustments

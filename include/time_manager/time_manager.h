@@ -120,30 +120,20 @@ typedef struct
     double currentTimeScale;
 } FrameTimingData;
 
+
 /**
  * @brief Creates and initializes a new TimeManager instance.
  *
- * Allocates memory for a TimeManager object and initializes it through
- * the InitTimeManager function. Ensures that the returned instance is
- * properly prepared for time management operations.
+ * This function allocates memory for a TimeManager object and initializes it with
+ * the specified configuration. If the provided configuration is null, default settings
+ * are used. The TimeManager object manages the simulation timing parameters such as
+ * physics update frequency, maximum frame time, and other time scaling settings.
  *
- * @return A pointer to the newly created TimeManager instance, or NULL
- * if memory allocation fails.
+ * @param config A pointer to a TimeManagerConfig structure containing the desired configuration
+ *               for the new TimeManager instance. If null, default configuration values are used.
+ * @return A pointer to the newly created TimeManager instance. Returns null if memory allocation fails.
  */
-TIME_MANAGER_API TimeManager* TmCreate(void);
-
-/**
- * @brief Creates and initializes a new TimeManager instance using the provided configuration.
- *
- * This function allocates memory for a TimeManager object and initializes it with settings
- * from the given TimeManagerConfig. If a null configuration is provided, it uses default
- * configuration values.
- *
- * @param config Pointer to a TimeManagerConfig structure containing configuration settings
- *               for the TimeManager. If null, default values are used.
- * @return Pointer to the newly created TimeManager instance, or null if memory allocation fails.
- */
-TIME_MANAGER_API TimeManager* TmCreateWithConfig(const TimeManagerConfig* config);
+TIME_MANAGER_API TimeManager* TmCreate(const TimeManagerConfig* config);
 
 /**
  * @brief Frees the memory allocated for a TimeManager instance.

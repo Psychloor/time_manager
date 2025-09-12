@@ -49,16 +49,8 @@ static void set_steady(long long start_ns, long long step_ns) {
 
 // ---------- tests ----------
 static int test_defaults_and_setters(void) {
-    TimeManager* tm = TmCreate(); // default clock inside
-    ASSERT_EQ_SIZE(TmGetPhysicsHz(tm), 60);                      // default 60 Hz
-    ASSERT_NEAR(TmGetPhysicsTimeStep(tm), 1.0/60.0, 1e-12);      // derived from Hz
-    ASSERT_NEAR(TmGetMaxFrameTime(tm), 0.25, 1e-12);             // default cap
-    ASSERT_EQ_SIZE(TmGetMaxPhysicsSteps(tm), 5);                 // default 5
-    ASSERT_NEAR(TmGetTimeScale(tm), 1.0, 1e-12);                 // default 1x
-
     // null config
-    TmDestroy(tm);
-    tm = TmCreateWithConfig(NULL);
+    TimeManager* tm = TmCreate(NULL);
     ASSERT_EQ_SIZE(TmGetPhysicsHz(tm), 60);                      // default 60 Hz
     ASSERT_NEAR(TmGetPhysicsTimeStep(tm), 1.0/60.0, 1e-12);      // derived from Hz
     ASSERT_NEAR(TmGetMaxFrameTime(tm), 0.25, 1e-12);             // default cap
@@ -72,7 +64,7 @@ static int test_defaults_and_setters(void) {
         .maxFrameTime = 0.1,
     };
     TmDestroy(tm);
-    tm = TmCreateWithConfig(&config);
+    tm = TmCreate(&config);
     ASSERT_EQ_SIZE(TmGetPhysicsHz(tm), 120);
     ASSERT_NEAR(TmGetPhysicsTimeStep(tm), 1.0/120.0, 1e-12);
     ASSERT_NEAR(TmGetMaxFrameTime(tm), 0.1, 1e-12);
@@ -132,7 +124,7 @@ static int test_defaults_and_setters(void) {
 static int test_first_frame_and_basic_stepping(void) {
     // Use a scripted clock: 0ns (set), 16ms (first frame consumes), then 32ms, 48ms...
     static const long long script[] = { 0LL, 16LL*1000*1000, 32LL*1000*1000, 48LL*1000*1000 };
-    TimeManager* tm = TmCreate();
+    TimeManager* tm = TmCreate(NULL);
     set_script(script, sizeof(script)/sizeof(script[0]));
     TmSetTimeSource(tm, fake_now_script); // resets lastTime to script[0] per header/impl
 
@@ -168,7 +160,7 @@ static int test_first_frame_and_basic_stepping(void) {
 
 static int test_lagging_and_max_steps(void) {
     // 100 Hz (10ms step), but only allow 2 steps per frame.
-    TimeManager* tm = TmCreate();
+    TimeManager* tm = TmCreate(NULL);
     TmSetPhysicsHz(tm, 100);
     TmSetMaxPhysicsSteps(tm, 2);
 
@@ -192,7 +184,7 @@ static int test_lagging_and_max_steps(void) {
 }
 
 static int test_cap_and_raw_delta(void) {
-    TimeManager* tm = TmCreate();
+    TimeManager* tm = TmCreate(NULL);
     TmSetMaxFrameTime(tm, 0.10); // cap at 100ms
 
     // 0ns, 0ns, then +1.5s raw -> raw should be 1.5, unscaled gets capped to 0.10
@@ -212,7 +204,7 @@ static int test_cap_and_raw_delta(void) {
 }
 
 static int test_pause_resume(void) {
-    TimeManager* tm = TmCreate();
+    TimeManager* tm = TmCreate(NULL);
     TmSetTimeScale(tm, 0.5);
     TmPause(tm);
     ASSERT_TRUE(TmIsPaused(tm));
@@ -224,7 +216,7 @@ static int test_pause_resume(void) {
 
 static int test_average_fps(void) {
     // Use steady 20ms frames → exactly 50 frames per second when summed to 1.0s+
-    TimeManager* tm = TmCreate();
+    TimeManager* tm = TmCreate(NULL);
     set_steady(0LL, 20LL*1000*1000);
     TmSetTimeSource(tm, fake_now_steady);
 
