@@ -19,6 +19,8 @@ extern "C" {
 #endif
 // @formatter:on
 
+typedef struct TimeManager TimeManager;
+
 typedef struct
 {
     /**
@@ -101,30 +103,6 @@ typedef struct
      */
     double currentTimeScale;
 } FrameTimingData;
-
-typedef struct
-{
-    size_t physicsHz;
-    double physicsTimeStep;
-    double maxFrameTime;
-    size_t maxPhysicsSteps;
-
-    double accumulator;
-    HighResTimeT lastTime;
-
-    bool firstFrame;
-    double timeScale;
-
-    double timeScaleBeforePause;
-
-    // Debug Stats
-    size_t physicsStepsThisFrame;
-    double averageFps;
-
-    // Average
-    double fpsAccumulator;
-    size_t fpsFrameCount;
-} TimeManager;
 
 /**
  * @brief Initializes the time management system with default parameters.

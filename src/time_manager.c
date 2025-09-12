@@ -7,6 +7,30 @@
 #include <assert.h>
 #include <math.h>
 
+struct TimeManager
+{
+    size_t physicsHz;
+    double physicsTimeStep;
+    double maxFrameTime;
+    size_t maxPhysicsSteps;
+
+    double accumulator;
+    HighResTimeT lastTime;
+
+    bool firstFrame;
+    double timeScale;
+
+    double timeScaleBeforePause;
+
+    // Debug Stats
+    size_t physicsStepsThisFrame;
+    double averageFps;
+
+    // Average
+    double fpsAccumulator;
+    size_t fpsFrameCount;
+};
+
 void UpdateFpsStats(TimeManager* tm, const double frameTime)
 {
     tm->fpsAccumulator += frameTime;
