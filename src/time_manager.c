@@ -220,7 +220,6 @@ void TmSetMaxPhysicsSteps(TimeManager* tm, const size_t maxPhysicsSteps)
 void TmSetTimeScale(TimeManager* tm, const double timeScale)
 {
     assert(tm != NULL && "TimeManager pointer is null!");
-    assert(timeScale >= 0.0 && "TimeScale must be non-negative!");
     tm->timeScale = (timeScale < 0.0) ? 0.0 : timeScale;
 }
 

@@ -66,7 +66,7 @@ static int test_defaults_and_setters(void) {
     ASSERT_NEAR(TmGetTimeScale(tm), 1.0, 1e-12);                 // default 1x
 
     // set config
-    TimeManagerConfig config = {
+    const TimeManagerConfig config = {
         .physicsHz = 120,
         .maxPhysicsSteps = 10,
         .maxFrameTime = 0.1,
@@ -105,6 +105,18 @@ static int test_defaults_and_setters(void) {
     ASSERT_NEAR(TmGetMaxFrameTime(tm), 0.1, 1e-12);
     TmSetMaxPhysicsSteps(tm, 4);
     ASSERT_EQ_SIZE(TmGetMaxPhysicsSteps(tm), 4);
+
+    // time scale clamps to [0, +inf)
+    TmSetTimeScale(tm, -1.0);
+    ASSERT_NEAR(TmGetTimeScale(tm), 0.0, 1e-12);
+    TmSetTimeScale(tm, 0.0);
+    ASSERT_NEAR(TmGetTimeScale(tm), 0.0, 1e-12);
+    TmSetTimeScale(tm, 2.5);
+    ASSERT_NEAR(TmGetTimeScale(tm), 2.5, 1e-12);
+
+    // max steps never 0
+    TmSetMaxPhysicsSteps(tm, 0);
+    ASSERT_TRUE(TmGetMaxPhysicsSteps(tm) >= 1);
 
     double before_dt = TmGetPhysicsTimeStep(tm);
     size_t before_hz = TmGetPhysicsHz(tm);
