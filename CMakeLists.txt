@@ -12,9 +12,6 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 option(TIME_MANAGER_BUILD_SHARED "Build time_manager as a shared library" ON)
 
 # Signing and metadata options
-set(TIME_MANAGER_COMPANY_NAME "Psychloor")
-set(TIME_MANAGER_COPYRIGHT "(C) 2025 Psychloor")
-
 option(TIME_MANAGER_SIGN_WINDOWS "Sign the DLL with signtool if available" OFF)
 set(TIME_MANAGER_SIGN_WINDOWS_CERT "" CACHE FILEPATH "Path to PFX/P12 certificate for signtool")
 set(TIME_MANAGER_SIGN_WINDOWS_CERT_PASSWORD "" CACHE STRING "Password for the PFX/P12 certificate")
