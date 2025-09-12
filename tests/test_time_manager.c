@@ -63,15 +63,32 @@ static int test_defaults_and_setters(void) {
     ASSERT_NEAR(TmGetPhysicsTimeStep(tm), 1.0/120.0, 1e-12);
 
     // Set via time step
+    // 60 Hz from ~1/60
     TmSetPhysicsTimeStep(tm, 0.016667);
-    ASSERT_NEAR(TmGetPhysicsTimeStep(tm), 0.016667, 1e-12);
-    ASSERT_TRUE(TmGetPhysicsHz(tm) >= 59 && TmGetPhysicsHz(tm) <= 60);
+    ASSERT_NEAR(TmGetPhysicsTimeStep(tm), 0.016667, 1e-6);
+    ASSERT_EQ_SIZE(TmGetPhysicsHz(tm), 60);
+
+    // 120 Hz
+    TmSetPhysicsTimeStep(tm, 1.0/120.0);
+    ASSERT_NEAR(TmGetPhysicsTimeStep(tm), 1.0/120.0, 1e-12);
+    ASSERT_EQ_SIZE(TmGetPhysicsHz(tm), 120);
+
+    // 50 Hz
+    TmSetPhysicsTimeStep(tm, 0.02);
+    ASSERT_NEAR(TmGetPhysicsTimeStep(tm), 0.02, 1e-12);
+    ASSERT_EQ_SIZE(TmGetPhysicsHz(tm), 50);
 
     // Caps & limits
     TmSetMaxFrameTime(tm, 0.1);
     ASSERT_NEAR(TmGetMaxFrameTime(tm), 0.1, 1e-12);
     TmSetMaxPhysicsSteps(tm, 4);
     ASSERT_EQ_SIZE(TmGetMaxPhysicsSteps(tm), 4);
+
+    double before_dt = TmGetPhysicsTimeStep(tm);
+    size_t before_hz = TmGetPhysicsHz(tm);
+    TmSetPhysicsTimeStep(tm, 0.0);   // should be ignored
+    ASSERT_NEAR(TmGetPhysicsTimeStep(tm), before_dt, 1e-12);
+    ASSERT_EQ_SIZE(TmGetPhysicsHz(tm), before_hz);
 
     return 0;
 }

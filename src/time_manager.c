@@ -194,7 +194,14 @@ void TmSetPhysicsTimeStep(TimeManager* tm, const double physicsTimeStep)
     }
 
     tm->physicsTimeStep = physicsTimeStep;
-    tm->physicsHz = (size_t)(1.0 / physicsTimeStep);
+
+    const double hzD = 1.0 / physicsTimeStep;
+    size_t hz = (size_t)llround(hzD);
+    if (hz == 0)
+    {
+        hz = 1;
+    }
+    tm->physicsHz = hz;
 }
 
 void TmSetMaxFrameTime(TimeManager* tm, const double maxFrameTime)
