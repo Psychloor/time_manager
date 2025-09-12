@@ -108,6 +108,7 @@ int main() {
     //     .physicsHz = 60,
     //     .maxFrameTime = 0.25,
     //     .maxPhysicsSteps = 5,
+    //     .timeScale = 1.0,
     // };
     // TimeManager* tm = TmCreate(&config);
     TimeManager* tm = TmCreate(NULL);
@@ -183,6 +184,19 @@ Limits maximum physics steps per frame. When clamped, the backlog beyond a singl
 TimeManager* tm = TmCreate(NULL); // Initialize with defaults (60 Hz physics), NULL if memory allocation fails
 TmDestroy(tm);  // Free memory allocated for TimeManager;
 ```
+
+### Config
+```c
+typedef struct {
+    size_t physicsHz;
+    size_t maxPhysicsSteps;
+    double maxFrameTime;
+    double timeScale;
+} TimeManagerConfig;
+
+TmDefaultConfig(); // Gives you a default config you can modify
+```
+
 ### Frame Processing
 ```c
 FrameTimingData frame = TmBeginFrame(tm);

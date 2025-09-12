@@ -63,7 +63,7 @@ void InitTimeManager(TimeManager* tm, const TimeManagerConfig* config)
     tm->physicsTimeStep = 1.0 / (double)tm->physicsHz;
     tm->maxFrameTime = config->maxFrameTime > 0.0 ? config->maxFrameTime : 0.25;
     tm->maxPhysicsSteps = config->maxPhysicsSteps > 0 ? config->maxPhysicsSteps : 5;
-    tm->timeScale = 1.0;
+    tm->timeScale = config->timeScale > 0.0 ? config->timeScale : 1.0;
     tm->accumulator = 0.0;
     tm->now = GetHighResolutionTime;
     tm->lastTime = tm->now();

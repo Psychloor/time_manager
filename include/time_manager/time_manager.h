@@ -26,6 +26,7 @@ typedef struct
     size_t physicsHz;
     size_t maxPhysicsSteps;
     double maxFrameTime;
+    double timeScale;
 } TimeManagerConfig;
 
 static inline TimeManagerConfig TmDefaultConfig(void)
@@ -34,6 +35,7 @@ static inline TimeManagerConfig TmDefaultConfig(void)
         .physicsHz = 60,
         .maxPhysicsSteps = 5,
         .maxFrameTime = 0.25,
+        .timeScale = 1.0
     };
 }
 
