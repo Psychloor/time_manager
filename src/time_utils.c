@@ -12,7 +12,7 @@ HighResTimeT GetHighResolutionTime(void)
     LARGE_INTEGER freq, counter;
     QueryPerformanceFrequency(&freq);
     QueryPerformanceCounter(&counter);
-    result.nanoseconds = (counter.QuadPart * 1000000000LL) / freq.QuadPart;
+    result.nanoseconds = (counter.QuadPart * 1000000000LL) / freq.QuadPart; // NOLINT(*-avoid-magic-numbers)
     #else
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);

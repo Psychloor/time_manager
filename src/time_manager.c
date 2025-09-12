@@ -107,20 +107,17 @@ FrameTimingData TmBeginFrame(TimeManager* tm)
 
     const double scaledFrameTime = cappedDeltaTime * tm->timeScale;
     tm->accumulator += scaledFrameTime;
-    tm->physicsStepsThisFrame = 0;
 
-    while (tm->accumulator >= tm->physicsTimeStep && tm->physicsStepsThisFrame < tm->
-        maxPhysicsSteps)
-    {
-        ++tm->physicsStepsThisFrame;
-        tm->accumulator -= tm->physicsTimeStep;
-    }
+    const double stepsD = floor((tm->accumulator + 1e-12) / tm->physicsTimeStep);
+    const bool lagging = stepsD > (double)tm->maxPhysicsSteps;
+    const size_t steps = lagging ? tm->maxPhysicsSteps : (size_t)stepsD;
 
-    const bool lagging = tm->accumulator >= tm->physicsTimeStep;
-    if (lagging)
-    {
-        // If we're lagging, keep only the remainder of a timestep
-        tm->accumulator = fmod(tm->accumulator, tm->physicsTimeStep);
+    const double remainder = fmod(tm->accumulator, tm->physicsTimeStep);
+
+    if (lagging) {
+        tm->accumulator = remainder;
+    } else {
+        tm->accumulator -= tm->physicsTimeStep * (double)steps;
     }
 
     // Calculate interpolation alpha
