@@ -10,11 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-static const size_t DEFAULT_PHYSICS_HZ = 60;
-static const double DEFAULT_MAX_FRAME_TIME = 0.25;
-static const size_t DEFAULT_MAX_PHYSICS_STEPS = 5;
-static const double DEFAULT_TIME_SCALE = 1.0;
-
 struct TimeManager
 {
     size_t physicsHz;

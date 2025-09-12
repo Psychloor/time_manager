@@ -19,6 +19,11 @@ extern "C" {
 #endif
 // @formatter:on
 
+static const size_t DEFAULT_PHYSICS_HZ = 60;
+static const double DEFAULT_MAX_FRAME_TIME = 0.25;
+static const size_t DEFAULT_MAX_PHYSICS_STEPS = 5;
+static const double DEFAULT_TIME_SCALE = 1.0;
+
 typedef struct TimeManager TimeManager;
 
 typedef struct
@@ -32,10 +37,10 @@ typedef struct
 static inline TimeManagerConfig TmDefaultConfig(void)
 {
     return (TimeManagerConfig){
-        .physicsHz = 60,
-        .maxPhysicsSteps = 5,
-        .maxFrameTime = 0.25,
-        .timeScale = 1.0
+        .physicsHz = DEFAULT_PHYSICS_HZ,
+        .maxPhysicsSteps = DEFAULT_MAX_PHYSICS_STEPS,
+        .maxFrameTime = DEFAULT_MAX_FRAME_TIME,
+        .timeScale = DEFAULT_TIME_SCALE
     };
 }
 
