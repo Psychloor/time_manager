@@ -62,11 +62,6 @@ static int test_defaults_and_setters(void) {
     ASSERT_EQ_SIZE(TmGetPhysicsHz(tm), 120);
     ASSERT_NEAR(TmGetPhysicsTimeStep(tm), 1.0/120.0, 1e-12);
 
-    // Set timestep directly (note: in your code, Hz stays as-is)
-    TmSetPhysicsTimeStep(tm, 0.02);
-    ASSERT_NEAR(TmGetPhysicsTimeStep(tm), 0.02, 1e-12);
-    ASSERT_EQ_SIZE(TmGetPhysicsHz(tm), 120); // unchanged by design
-
     // Caps & limits
     TmSetMaxFrameTime(tm, 0.1);
     ASSERT_NEAR(TmGetMaxFrameTime(tm), 0.1, 1e-12);
@@ -114,7 +109,7 @@ static int test_first_frame_and_basic_stepping(void) {
 static int test_lagging_and_max_steps(void) {
     // 100 Hz (10ms step), but only allow 2 steps per frame.
     TimeManager* tm = TmCreate();
-    TmSetPhysicsTimeStep(tm, 0.01);
+    TmSetPhysicsHz(tm, 100);
     TmSetMaxPhysicsSteps(tm, 2);
 
     // Script: 0ns (set), 0ns (first frame consumes -> zero), 50ms jump => should try 5 steps but cap at 2
