@@ -165,7 +165,7 @@ FrameTimingData TmBeginFrame(TimeManager* tm)
 void TmSetPhysicsHz(TimeManager* tm, const size_t physicsHz)
 {
     assert(tm != NULL && "TimeManager pointer is null!");
-    if (physicsHz == 0)
+    if (physicsHz <= 0)
     {
         return;
     }
