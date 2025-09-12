@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 3.4...4.0)
 project(time_manager C)
 
 set(CMAKE_C_STANDARD 23)
@@ -6,12 +6,13 @@ set(CMAKE_C_STANDARD 23)
 option(TIME_MANAGER_BUILD_SHARED "Build time_manager as a shared library" ON)
 
 set(TIMEMANAGER_SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/time_manager.c
+        src/time_manager.c
+        src/time_utils.c
 )
 
 set(TIMEMANAGER_HEADERS
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/time_manager/time_manager.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/time_manager/utils/time_utils.h
+        include/time_manager/time_manager.h
+        include/time_manager/utils/time_utils.h
 )
 
 if(TIME_MANAGER_BUILD_SHARED)

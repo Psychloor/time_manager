@@ -24,23 +24,7 @@ typedef struct
     long long nanoseconds;
 } HighResTimeT;
 
-TIME_MANAGER_API inline HighResTimeT GetTime(void)
-{
-    HighResTimeT result;
-
-    #ifdef _WIN32
-    LARGE_INTEGER freq, counter;
-    QueryPerformanceFrequency(&freq);
-    QueryPerformanceCounter(&counter);
-    result.nanoseconds = (counter.QuadPart * 1000000000LL) / freq.QuadPart;
-    #else
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    result.nanoseconds = ts.tv_sec * 1000000000LL + ts.tv_nsec;
-    #endif
-
-    return result;
-}
+TIME_MANAGER_API HighResTimeT GetHighResolutionTime(void);
 
 #ifdef __cplusplus
 }

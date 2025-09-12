@@ -27,7 +27,7 @@ void InitTimeManager(TimeManager* tm)
     tm->maxPhysicsSteps = 5;
     tm->timeScale = 1.0;
     tm->accumulator = 0.0;
-    tm->lastTime = GetTime();
+    tm->lastTime = GetHighResolutionTime();
     tm->firstFrame = true;
     tm->physicsStepsThisFrame = 0;
     tm->averageFps = 0.0;
@@ -41,7 +41,7 @@ FrameTimingData TmBeginFrame(TimeManager* tm)
     if (tm->firstFrame)
     {
         tm->firstFrame = false;
-        tm->lastTime = GetTime();
+        tm->lastTime = GetHighResolutionTime();
         return (FrameTimingData){
             .physicsSteps = 0,
             .fixedTimestep = tm->physicsTimeStep,
@@ -54,7 +54,7 @@ FrameTimingData TmBeginFrame(TimeManager* tm)
         };
     }
 
-    const HighResTimeT currentTime = GetTime();
+    const HighResTimeT currentTime = GetHighResolutionTime();
     const double deltaTime = (currentTime.nanoseconds - tm->lastTime.nanoseconds) / 1000000000.0;
     const double cappedDeltaTime = fmin(deltaTime, tm->maxFrameTime);
     tm->lastTime = currentTime;
@@ -179,7 +179,7 @@ void TmReset(TimeManager* tm)
 {
     tm->firstFrame = true;
     tm->accumulator = 0.0;
-    tm->lastTime = GetTime();
+    tm->lastTime = GetHighResolutionTime();
     tm->physicsStepsThisFrame = 0;
     tm->fpsAccumulator = 0.0;
     tm->fpsFrameCount = 0;
