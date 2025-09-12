@@ -62,6 +62,11 @@ static int test_defaults_and_setters(void) {
     ASSERT_EQ_SIZE(TmGetPhysicsHz(tm), 120);
     ASSERT_NEAR(TmGetPhysicsTimeStep(tm), 1.0/120.0, 1e-12);
 
+    // Set via time step
+    TmSetPhysicsTimeStep(tm, 0.016667);
+    ASSERT_NEAR(TmGetPhysicsTimeStep(tm), 0.016667, 1e-12);
+    ASSERT_TRUE(TmGetPhysicsHz(tm) >= 59 && TmGetPhysicsHz(tm) <= 60);
+
     // Caps & limits
     TmSetMaxFrameTime(tm, 0.1);
     ASSERT_NEAR(TmGetMaxFrameTime(tm), 0.1, 1e-12);
