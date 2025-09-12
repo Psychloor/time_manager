@@ -3,9 +3,9 @@ exec_prefix=${prefix}
 libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
 includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
 
-Name: time_manager
+Name: @PROJECT_NAME@
 Description: @PROJECT_DESCRIPTION@
-Version: @PROJECT_VERSION@
+Version: @TIME_MANAGER_VERSION@
 Cflags: -I${includedir}
-Libs: -L${libdir} -ltime_manager
-Libs.private: -lm
+Libs: -L${libdir} -l@PROJECT_NAME@
+Requires:

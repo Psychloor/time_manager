@@ -187,12 +187,6 @@ size_t TmGetPhysicsSteps(const TimeManager* tm)
     return tm->physicsStepsThisFrame;
 }
 
-double TmGetInterpolationAlpha(const TimeManager* tm)
-{
-    assert(tm != NULL && "TimeManager pointer is null!");
-    return tm->accumulator / tm->physicsTimeStep;
-}
-
 void TmReset(TimeManager* tm)
 {
     assert(tm != NULL && "TimeManager pointer is null!");

@@ -10,16 +10,3 @@ endif()
 include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
 
 check_required_components(@PROJECT_NAME@)
-
-# === cmake/time_manager.pc.in ===
-prefix=@CMAKE_INSTALL_PREFIX@
-exec_prefix=${prefix}
-libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
-includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
-
-Name: @PROJECT_NAME@
-Description: @PROJECT_DESCRIPTION@
-Version: @TIME_MANAGER_VERSION@
-Cflags: -I${includedir}
-Libs: -L${libdir} -l@PROJECT_NAME@
-Requires:
