@@ -16,10 +16,46 @@ A robust C library for game timing and physics simulation, implementing the fixe
 
 Variable timestep physics can lead to:
 - Non-deterministic behavior (different results on different machines)
-- Numerical instability at low framerates
+- Numerical instability at low frame rates
 - Difficulty in networking and replay systems
 
-This library implements the widely-accepted solution: running physics at a fixed rate while rendering at any framerate, using interpolation to maintain visual smoothness.
+This library implements the widely accepted solution: running physics at a fixed rate while rendering at any framerate, using interpolation to maintain visual smoothness.
+
+## Thread Safety
+
+**The Time Manager library is not thread-safe.** Each `TimeManager` instance maintains mutable state and should only be accessed from a single thread. If you need timing functionality across multiple threads, use one of these approaches:
+
+1. **Separate instances** - Create a separate `TimeManager` for each thread that needs timing
+2. **Single-threaded timing** - Keep all timing logic in your main game loop thread
+3. **Manual synchronization** - If you must share a `TimeManager`, protect all function calls with mutexes
+
+**Recommended approach:** Most games use a single-threaded main loop for timing and physics, with only rendering or asset loading on separate threads. This library is designed for this common pattern.
+
+```c
+// Good: Each thread has its own TimeManager
+void* physics_thread(void* arg) {
+    TimeManager tm;
+    InitTimeManager(&tm);
+    // ... use tm only in this thread
+}
+
+void* ai_thread(void* arg) {
+    TimeManager tm;
+    InitTimeManager(&tm);
+    // ... use tm only in this thread
+}
+
+// Also good: Single-threaded game loop
+int main() {
+    TimeManager tm;
+    InitTimeManager(&tm);
+    
+    while (running) {
+        FrameTimingData frame = TmBeginFrame(&tm);
+        // All timing happens on main thread
+    }
+}
+```
 
 ## Building
 
@@ -190,6 +226,7 @@ TmReset(&tm);  // Reset all timing data
 3. **Choose appropriate physics rate** - 60 Hz is common, 30 Hz for mobile, 120+ Hz for competitive games
 4. **Handle lag gracefully** - Detect when `lagging` is true and adjust quality settings
 5. **Use time scaling carefully** - Useful for pause menus, slow-motion effects, and debugging
+6. **Single-threaded timing** - Keep timing logic on your main game loop thread
 
 ## Common Physics Rates
 
