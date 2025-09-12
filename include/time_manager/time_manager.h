@@ -261,19 +261,20 @@ TIME_MANAGER_API double TmGetAccumulator(const TimeManager* tm);
 TIME_MANAGER_API double TmGetTimeScale(const TimeManager* tm);
 
 /**
-* @brief Overrides the time source used by the TimeManager.
-*
-* By default, the time source is a high-resolution monotonic clock. In tests, you can
-* inject a fake/controlled time source to make behavior deterministic.
-*
-* The function must return a monotonically increasing HighResTimeT in nanoseconds.
-*
-* Note: Setting a new time source resets the internal lastTime to the current value
-* from the provided source to avoid large deltas on the next frame.
-*
-* @param tm Pointer to the TimeManager instance.
-* @param nowFn Function pointer returning current time (nanoseconds wrapped in HighResTimeT).
-*/
+ * @brief Configures the time source for a TimeManager instance.
+ *
+ * This function sets the time source for the given TimeManager by providing a callback
+ * function that returns the current high-resolution time. It also initializes the
+ * last recorded time within the TimeManager to the current time obtained from the
+ * specified time source.
+ *
+ * @param tm Pointer to the TimeManager instance for which the time source will be set.
+ * Passing a null pointer will lead to undefined behavior.
+ * @param nowFn Function pointer to a callback that returns the current time as
+ * a HighResTimeT object. This callback is expected to provide high-resolution time
+ * in a consistent and deterministic manner. Passing a null pointer will lead
+ * to undefined behavior.
+ */
 TIME_MANAGER_API void TmSetTimeSource(TimeManager* tm, HighResTimeT (*nowFn)(void));
 
 /**
