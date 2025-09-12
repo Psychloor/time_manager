@@ -128,19 +128,6 @@ TIME_MANAGER_API TimeManager* TmCreate(void);
 TIME_MANAGER_API void TmDestroy(TimeManager* tm);
 
 /**
- * @brief Initializes the time management system with default parameters.
- *
- * This function sets up the core parameters for managing time in the application,
- * including physics update rates, maximum allowable frame time, and scaling factors.
- * It resets the accumulator for frame timing, retrieves the initial high-resolution
- * timestamp, and prepares the time manager's state for the first frame of the application.
- *
- * @param tm A pointer to the TimeManager structure that will be initialized
- * with default values, including physics step settings and time-related statistics.
- */
-TIME_MANAGER_API void InitTimeManager(TimeManager* tm);
-
-/**
  * @brief Initializes and manages the timing tm for a new frame.
  *
  * This function handles the timing calculations necessary for synchronizing the game loop.
@@ -167,6 +154,22 @@ TIME_MANAGER_API FrameTimingData TmBeginFrame(TimeManager* tm);
  *                  Must be greater than zero to take effect.
  */
 TIME_MANAGER_API void TmSetPhysicsHz(TimeManager* tm, size_t physicsHz);
+
+/**
+ * @brief Sets the physics time step for the given TimeManager instance.
+ *
+ * This function updates the physics time step and computes the corresponding
+ * physics update frequency (Hz) for the TimeManager. The physics time step
+ * determines the duration of each physics simulation step and influences the
+ * simulation's precision. A smaller time step results in more frequent updates.
+ * If the provided time step is less than or equal to zero, the function will
+ * not modify the TimeManager's settings.
+ *
+ * @param tm Pointer to the TimeManager instance whose physics time step is to be set.
+ *           Must not be null.
+ * @param physicsTimeStep The new physics time step value in seconds. Must be greater than zero.
+ */
+TIME_MANAGER_API void TmSetPhysicsTimeStep(TimeManager* tm, double physicsTimeStep);
 
 /**
  * @brief Sets the maximum allowable frame time for the physics system.
@@ -215,7 +218,7 @@ TIME_MANAGER_API void TmSetTimeScale(TimeManager* tm, double timeScale);
  *             the accumulated time information.
  * @return The accumulated time as a double value.
  */
-TIME_MANAGER_API double TmGetAccumulatedTime(const TimeManager* tm);
+TIME_MANAGER_API double TmGetAccumulator(const TimeManager* tm);
 
 /**
  * @brief Retrieves the timescale factor for the simulation.
@@ -302,21 +305,6 @@ TIME_MANAGER_API size_t TmGetPhysicsHz(const TimeManager* tm);
  * @return The average frames per second as a double.
  */
 TIME_MANAGER_API double TmGetAverageFps(const TimeManager* tm);
-
-/**
- * @brief Retrieves the accumulated frame time from the TimeManager structure.
- *
- * This function returns the value of the accumulator stored in the provided
- * TimeManager instance, representing the total time accumulated during the
- * current physics frame. The accumulator is used to track the time progression
- * for managing physics simulations.
- *
- * @param tm A pointer to the TimeManager structure containing the
- *             accumulator value and other timing-related information.
- *             Must not be null.
- * @return The accumulated frame time as a double precision floating-point value.
- */
-TIME_MANAGER_API double TmGetFrameTime(const TimeManager* tm);
 
 /**
  * @brief Retrieves the number of physics simulation steps executed during the current frame.

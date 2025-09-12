@@ -139,6 +139,9 @@ int main() {
         // Your frame limiting/vsync here...
     }
     
+    // Free memory
+    TmDestroy(tm);
+    
     return 0;
 }
 ```

@@ -48,6 +48,14 @@ static void set_steady(long long start_ns, long long step_ns) {
 }
 
 // ---------- tests ----------
+static int test_init_destroy(void) {
+    TimeManager* tm = TmCreate();
+    ASSERT_TRUE(tm != NULL);
+    TmDestroy(tm);
+
+    return 0;
+}
+
 static int test_defaults_and_setters(void) {
     TimeManager* tm = TmCreate(); // default clock inside
     // initial values from your implementation
@@ -175,6 +183,7 @@ static int test_average_fps(void) {
 
 int main(void) {
     int rc = 0;
+    if ((rc = test_init_destroy()))      return rc;
     if ((rc = test_defaults_and_setters()))      return rc;
     if ((rc = test_first_frame_and_basic_stepping())) return rc;
     if ((rc = test_lagging_and_max_steps()))     return rc;
