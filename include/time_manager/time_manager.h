@@ -19,32 +19,7 @@ extern "C" {
 #endif
 // @formatter:on
 
-typedef struct TimeManager
-{
-    size_t physicsHz;
-    double physicsTimeStep;
-    double maxFrameTime;
-    size_t maxPhysicsSteps;
-
-    double accumulator;
-    HighResTimeT lastTime;
-
-    bool firstFrame;
-    double timeScale;
-
-    double timeScaleBeforePause;
-
-    // Debug Stats
-    size_t physicsStepsThisFrame;
-    double averageFps;
-
-    // Average
-    double fpsAccumulator;
-    size_t fpsFrameCount;
-
-    // Time source
-    HighResTimeT (*now)(void);
-} TimeManager;
+typedef struct TimeManager TimeManager;
 
 typedef struct
 {
@@ -128,6 +103,29 @@ typedef struct
      */
     double currentTimeScale;
 } FrameTimingData;
+
+/**
+ * @brief Creates and initializes a new TimeManager instance.
+ *
+ * Allocates memory for a TimeManager object and initializes it through
+ * the InitTimeManager function. Ensures that the returned instance is
+ * properly prepared for time management operations.
+ *
+ * @return A pointer to the newly created TimeManager instance, or NULL
+ * if memory allocation fails.
+ */
+TIME_MANAGER_API TimeManager* TmCreate(void);
+
+/**
+ * @brief Frees the memory allocated for a TimeManager instance.
+ *
+ * This function deallocates the memory associated with the provided TimeManager
+ * instance. It ensures that the allocated resources for the TimeManager are released.
+ *
+ * @param tm Pointer to the TimeManager instance to be destroyed. If the pointer is null,
+ * the function does nothing.
+ */
+TIME_MANAGER_API void TmDestroy(TimeManager* tm);
 
 /**
  * @brief Initializes the time management system with default parameters.

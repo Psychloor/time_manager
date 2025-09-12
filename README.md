@@ -36,24 +36,21 @@ This library implements the widely accepted solution: running physics at a fixed
 ```c
 // Good: Each thread has its own TimeManager
 void* physics_thread(void* arg) {
-    TimeManager tm;
-    InitTimeManager(&tm);
+    TimeManager* tm = TmCreate();
     // ... use tm only in this thread
 }
 
 void* ai_thread(void* arg) {
-    TimeManager tm;
-    InitTimeManager(&tm);
+    TimeManager* tm = TmCreate();
     // ... use tm only in this thread
 }
 
 // Also good: Single-threaded game loop
 int main() {
-    TimeManager tm;
-    InitTimeManager(&tm);
+    TimeManager* tm = TmCreate();
     
     while (running) {
-        FrameTimingData frame = TmBeginFrame(&tm);
+        FrameTimingData frame = TmBeginFrame(tm);
         // All timing happens on main thread
     }
 }
@@ -113,18 +110,17 @@ void render(GameObject* obj, double alpha) {
 
 int main() {
     // Initialize time manager
-    TimeManager tm;
-    InitTimeManager(&tm);
+    TimeManager* tm = TmCreate();
     
     // Optional: Configure physics rate (default is 60 Hz)
-    TmSetPhysicsHz(&tm, 120);  // 120 physics updates per second
+    TmSetPhysicsHz(tm, 120);  // 120 physics updates per second
     
     GameObject player = {0};
     
     // Game loop
     while (running) {
         // Begin frame and get timing data
-        FrameTimingData frame = TmBeginFrame(&tm);
+        FrameTimingData frame = TmBeginFrame(tm);
         
         // Perform fixed timestep physics updates
         for (size_t i = 0; i < frame.physicsSteps; i++) {
@@ -138,7 +134,7 @@ int main() {
         if (frame.lagging) {
             printf("Warning: Can't keep up with physics rate!\n");
         }
-        printf("FPS: %.1f\n", TmGetAverageFps(&tm));
+        printf("FPS: %.1f\n", TmGetAverageFps(tm));
         
         // Your frame limiting/vsync here...
     }
@@ -176,13 +172,13 @@ Limits maximum physics steps per frame to prevent freezing when performance drop
 
 ### Initialization
 ```c
-TimeManager tm;
-InitTimeManager(&tm);  // Initialize with defaults (60 Hz physics)
+TimeManager* tm = TmCreate(); // Initialize with defaults (60 Hz physics), NULL if memory allocation fails
+TmDestroy(tm);  // Free memory allocated for TimeManager;
 ```
 
 ### Frame Processing
 ```c
-FrameTimingData frame = TmBeginFrame(&tm);
+FrameTimingData frame = TmBeginFrame(tm);
 // Returns structure with:
 // - physicsSteps: Number of physics updates to perform
 // - fixedTimestep: Duration of each physics step
@@ -196,24 +192,24 @@ FrameTimingData frame = TmBeginFrame(&tm);
 
 ### Configuration
 ```c
-TmSetPhysicsHz(&tm, 120);        // Set physics rate (Hz)
-TmSetMaxFrameTime(&tm, 0.25);    // Max frame time cap (seconds)
-TmSetMaxPhysicsSteps(&tm, 5);    // Max physics steps per frame
-TmSetTimeScale(&tm, 0.5);        // Time scaling (0.5 = half speed)
+TmSetPhysicsHz(tm, 120);        // Set physics rate (Hz)
+TmSetMaxFrameTime(tm, 0.25);    // Max frame time cap (seconds)
+TmSetMaxPhysicsSteps(tm, 5);    // Max physics steps per frame
+TmSetTimeScale(tm, 0.5);        // Time scaling (0.5 = half speed)
 ```
 
 ### Pause/Resume
 ```c
-TmPause(&tm);                     // Pause time progression
-TmResume(&tm);                    // Resume from pause
-bool paused = TmIsPaused(&tm);   // Check pause state
+TmPause(tm);                     // Pause time progression
+TmResume(tm);                    // Resume from pause
+bool paused = TmIsPaused(tm);   // Check pause state
 ```
 
 ### Monitoring
 ```c
-double fps = TmGetAverageFps(&tm);           // Average FPS
-size_t steps = TmGetPhysicsSteps(&tm);       // Physics steps last frame
-double alpha = TmGetInterpolationAlpha(&tm); // Current interpolation factor
+double fps = TmGetAverageFps(tm);           // Average FPS
+size_t steps = TmGetPhysicsSteps(tm);       // Physics steps last frame
+double alpha = TmGetInterpolationAlpha(tm); // Current interpolation factor
 ```
 
 ### Reset
