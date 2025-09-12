@@ -19,7 +19,32 @@ extern "C" {
 #endif
 // @formatter:on
 
-typedef struct TimeManager TimeManager;
+typedef struct TimeManager
+{
+    size_t physicsHz;
+    double physicsTimeStep;
+    double maxFrameTime;
+    size_t maxPhysicsSteps;
+
+    double accumulator;
+    HighResTimeT lastTime;
+
+    bool firstFrame;
+    double timeScale;
+
+    double timeScaleBeforePause;
+
+    // Debug Stats
+    size_t physicsStepsThisFrame;
+    double averageFps;
+
+    // Average
+    double fpsAccumulator;
+    size_t fpsFrameCount;
+
+    // Time source
+    HighResTimeT (*now)(void);
+} TimeManager;
 
 typedef struct
 {
@@ -216,6 +241,22 @@ TIME_MANAGER_API double TmGetAccumulatedTime(const TimeManager* tm);
  * @return The current timescale factor as a double.
  */
 TIME_MANAGER_API double TmGetTimeScale(const TimeManager* tm);
+
+/**
+* @brief Overrides the time source used by the TimeManager.
+*
+* By default, the time source is a high-resolution monotonic clock. In tests, you can
+* inject a fake/controlled time source to make behavior deterministic.
+*
+* The function must return a monotonically increasing HighResTimeT in nanoseconds.
+*
+* Note: Setting a new time source resets the internal lastTime to the current value
+* from the provided source to avoid large deltas on the next frame.
+*
+* @param tm Pointer to the TimeManager instance.
+* @param nowFn Function pointer returning current time (nanoseconds wrapped in HighResTimeT).
+*/
+TIME_MANAGER_API void TmSetTimeSource(TimeManager* tm, HighResTimeT (*nowFn)(void));
 
 /**
  * @brief Retrieves the physics time step value from the given TimeManager structure.

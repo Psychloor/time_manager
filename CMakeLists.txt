@@ -10,6 +10,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 # Options
 option(TIME_MANAGER_BUILD_SHARED "Build time_manager as a shared library" ON)
+option(TIME_MANAGER_BUILD_TESTS "Build tests" ON)
 
 # Signing and metadata options
 option(TIME_MANAGER_SIGN_WINDOWS "Sign the DLL with signtool if available" OFF)
@@ -198,6 +199,11 @@ if(UNIX AND NOT APPLE AND BUILD_SHARED_LIBS AND TIME_MANAGER_EMBED_ELF_METADATA)
     endif()
 endif()
 
+# Tests
+if(TIME_MANAGER_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
 
 # Installation (only if this is the main project)
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)

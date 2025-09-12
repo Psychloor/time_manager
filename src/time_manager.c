@@ -7,30 +7,6 @@
 #include <assert.h>
 #include <math.h>
 
-struct TimeManager
-{
-    size_t physicsHz;
-    double physicsTimeStep;
-    double maxFrameTime;
-    size_t maxPhysicsSteps;
-
-    double accumulator;
-    HighResTimeT lastTime;
-
-    bool firstFrame;
-    double timeScale;
-
-    double timeScaleBeforePause;
-
-    // Debug Stats
-    size_t physicsStepsThisFrame;
-    double averageFps;
-
-    // Average
-    double fpsAccumulator;
-    size_t fpsFrameCount;
-};
-
 void UpdateFpsStats(TimeManager* tm, const double frameTime)
 {
     tm->fpsAccumulator += frameTime;
@@ -53,7 +29,8 @@ void InitTimeManager(TimeManager* tm)
     tm->maxPhysicsSteps = 5;
     tm->timeScale = 1.0;
     tm->accumulator = 0.0;
-    tm->lastTime = GetHighResolutionTime();
+    tm->now = GetHighResolutionTime;
+    tm->lastTime = tm->now();
     tm->firstFrame = true;
     tm->physicsStepsThisFrame = 0;
     tm->averageFps = 0.0;
@@ -68,7 +45,7 @@ FrameTimingData TmBeginFrame(TimeManager* tm)
     if (tm->firstFrame)
     {
         tm->firstFrame = false;
-        tm->lastTime = GetHighResolutionTime();
+        tm->lastTime = tm->now();
         return (FrameTimingData){
             .physicsSteps = 0,
             .fixedTimestep = tm->physicsTimeStep,
@@ -81,7 +58,7 @@ FrameTimingData TmBeginFrame(TimeManager* tm)
         };
     }
 
-    const HighResTimeT currentTime = GetHighResolutionTime();
+    const HighResTimeT currentTime = tm->now();
     const double deltaTime = (currentTime.nanoseconds - tm->lastTime.nanoseconds) / 1000000000.0;
     const double cappedDeltaTime = fmin(deltaTime, tm->maxFrameTime);
     tm->lastTime = currentTime;
@@ -169,6 +146,14 @@ double TmGetTimeScale(const TimeManager* tm)
     return tm->timeScale;
 }
 
+void TmSetTimeSource(TimeManager* tm, HighResTimeT (*nowFn)(void))
+{
+    assert(tm != NULL && "TimeManager pointer is null!");
+    assert(nowFn != NULL && "nowFn pointer is null!");
+    tm->now = nowFn;
+    tm->lastTime = tm->now();
+}
+
 double TmGetPhysicsTimeStep(const TimeManager* tm)
 {
     assert(tm != NULL && "TimeManager pointer is null!");
@@ -216,7 +201,7 @@ void TmReset(TimeManager* tm)
     assert(tm != NULL && "TimeManager pointer is null!");
     tm->firstFrame = true;
     tm->accumulator = 0.0;
-    tm->lastTime = GetHighResolutionTime();
+    tm->lastTime = tm->now();
     tm->physicsStepsThisFrame = 0;
     tm->fpsAccumulator = 0.0;
     tm->fpsFrameCount = 0;
