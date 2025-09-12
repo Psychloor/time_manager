@@ -126,7 +126,7 @@ FrameTimingData TmBeginFrame(TimeManager* tm)
     assert(tm->physicsTimeStep > 0.0 && "physicsTimeStep must be > 0");
 
     const HighResTimeT currentTime = tm->now();
-    const double deltaTime = fmax((double)(currentTime.nanoseconds - tm->lastTime.nanoseconds) / 1000000000.0, 0.0);
+    const double deltaTime = fmax((double)(currentTime.nanoseconds - tm->lastTime.nanoseconds) / 1000000000.0, DBL_EPSILON);
     const double cappedDeltaTime = fmin(deltaTime, tm->maxFrameTime);
     const double scaledFrameTime = cappedDeltaTime * tm->timeScale;
     tm->lastTime = currentTime;

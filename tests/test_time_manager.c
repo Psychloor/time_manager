@@ -23,39 +23,54 @@
 static const long long* g_script = NULL;
 static size_t g_script_len = 0, g_script_idx = 0;
 
-static HighResTimeT fake_now_script(void) {
+static HighResTimeT fake_now_script(void)
+{
     HighResTimeT t;
-    if (!g_script || g_script_len == 0) { t.nanoseconds = 0; return t; }
+    if (!g_script || g_script_len == 0)
+    {
+        t.nanoseconds = 0;
+        return t;
+    }
     size_t i = (g_script_idx < g_script_len) ? g_script_idx++ : (g_script_len - 1);
     t.nanoseconds = g_script[i];
     return t;
 }
 
-static void set_script(const long long* arr, size_t n) {
-    g_script = arr; g_script_len = n; g_script_idx = 0;
+static void set_script(const long long* arr, size_t n)
+{
+    g_script = arr;
+    g_script_len = n;
+    g_script_idx = 0;
 }
 
 // B) Steady clock (returns start + k*step each call)
 static long long g_cur_ns = 0;
 static long long g_step_ns = 0;
 
-static HighResTimeT fake_now_steady(void) {
-    HighResTimeT t; t.nanoseconds = g_cur_ns; g_cur_ns += g_step_ns; return t;
+static HighResTimeT fake_now_steady(void)
+{
+    HighResTimeT t;
+    t.nanoseconds = g_cur_ns;
+    g_cur_ns += g_step_ns;
+    return t;
 }
 
-static void set_steady(long long start_ns, long long step_ns) {
-    g_cur_ns = start_ns; g_step_ns = step_ns;
+static void set_steady(long long start_ns, long long step_ns)
+{
+    g_cur_ns = start_ns;
+    g_step_ns = step_ns;
 }
 
 // ---------- tests ----------
-static int test_defaults_and_setters(void) {
+static int test_defaults_and_setters(void)
+{
     // null config
     TimeManager* tm = TmCreate(NULL);
-    ASSERT_EQ_SIZE(TmGetPhysicsHz(tm), 60);                      // default 60 Hz
-    ASSERT_NEAR(TmGetPhysicsTimeStep(tm), 1.0/60.0, 1e-12);      // derived from Hz
-    ASSERT_NEAR(TmGetMaxFrameTime(tm), 0.25, 1e-12);             // default cap
-    ASSERT_EQ_SIZE(TmGetMaxPhysicsSteps(tm), 5);                 // default 5
-    ASSERT_NEAR(TmGetTimeScale(tm), 1.0, 1e-12);                 // default 1x
+    ASSERT_EQ_SIZE(TmGetPhysicsHz(tm), 60);                 // default 60 Hz
+    ASSERT_NEAR(TmGetPhysicsTimeStep(tm), 1.0/60.0, 1e-12); // derived from Hz
+    ASSERT_NEAR(TmGetMaxFrameTime(tm), 0.25, 1e-12);        // default cap
+    ASSERT_EQ_SIZE(TmGetMaxPhysicsSteps(tm), 5);            // default 5
+    ASSERT_NEAR(TmGetTimeScale(tm), 1.0, 1e-12);            // default 1x
 
     // set config
     const TimeManagerConfig config = {
@@ -84,7 +99,7 @@ static int test_defaults_and_setters(void) {
     ASSERT_EQ_SIZE(TmGetPhysicsHz(tm), 60);
 
     // 120 Hz
-    TmSetPhysicsTimeStep(tm, 1.0/120.0);
+    TmSetPhysicsTimeStep(tm, 1.0 / 120.0);
     ASSERT_NEAR(TmGetPhysicsTimeStep(tm), 1.0/120.0, 1e-12);
     ASSERT_EQ_SIZE(TmGetPhysicsHz(tm), 120);
 
@@ -113,7 +128,7 @@ static int test_defaults_and_setters(void) {
 
     double before_dt = TmGetPhysicsTimeStep(tm);
     size_t before_hz = TmGetPhysicsHz(tm);
-    TmSetPhysicsTimeStep(tm, 0.0);   // should be ignored
+    TmSetPhysicsTimeStep(tm, 0.0); // should be ignored
     ASSERT_NEAR(TmGetPhysicsTimeStep(tm), before_dt, 1e-12);
     ASSERT_EQ_SIZE(TmGetPhysicsHz(tm), before_hz);
 
@@ -122,11 +137,12 @@ static int test_defaults_and_setters(void) {
     return 0;
 }
 
-static int test_first_frame_and_basic_stepping(void) {
+static int test_first_frame_and_basic_stepping(void)
+{
     // Use a scripted clock: 0ns (set), 16ms (first frame consumes), then 32ms, 48ms...
-    static const long long script[] = { 0LL, 16LL*1000*1000, 32LL*1000*1000, 48LL*1000*1000 };
+    static const long long script[] = {0LL, 16LL * 1000 * 1000, 32LL * 1000 * 1000, 48LL * 1000 * 1000};
     TimeManager* tm = TmCreate(NULL);
-    set_script(script, sizeof(script)/sizeof(script[0]));
+    set_script(script, sizeof(script) / sizeof(script[0]));
     TmSetTimeSource(tm, fake_now_script); // resets lastTime to script[0] per header/impl
 
     // 1) first frame is special: zeros & sets lastTime to script[1]
@@ -145,7 +161,7 @@ static int test_first_frame_and_basic_stepping(void) {
     ASSERT_EQ_SIZE(f1.physicsSteps, 0);
     ASSERT_TRUE(!f1.lagging);
     ASSERT_NEAR(f1.unscaledFrameTime, 0.016, 1e-6);
-    ASSERT_NEAR(f1.frameTime,       0.016, 1e-6);
+    ASSERT_NEAR(f1.frameTime, 0.016, 1e-6);
     ASSERT_TRUE(f1.interpolationAlpha > 0.9 && f1.interpolationAlpha < 1.0);
 
     // 3) next 16ms pushes us over one step -> 1 physics step this frame
@@ -159,22 +175,23 @@ static int test_first_frame_and_basic_stepping(void) {
     return 0;
 }
 
-static int test_lagging_and_max_steps(void) {
+static int test_lagging_and_max_steps(void)
+{
     // 100 Hz (10ms step), but only allow 2 steps per frame.
     TimeManager* tm = TmCreate(NULL);
     TmSetPhysicsHz(tm, 100);
     TmSetMaxPhysicsSteps(tm, 2);
 
     // Script: 0ns (set), 0ns (first frame consumes -> zero), 50ms jump => should try 5 steps but cap at 2
-    static const long long script[] = { 0LL, 0LL, 50LL*1000*1000 };
-    set_script(script, sizeof(script)/sizeof(script[0]));
+    static const long long script[] = {0LL, 0LL, 50LL * 1000 * 1000};
+    set_script(script, sizeof(script) / sizeof(script[0]));
     TmSetTimeSource(tm, fake_now_script);
 
     (void)TmBeginFrame(tm); // first frame
 
     FrameTimingData f = TmBeginFrame(tm);
-    ASSERT_EQ_SIZE(f.physicsSteps, 2);  // capped
-    ASSERT_TRUE(f.lagging);             // accumulator still >= step before fmod
+    ASSERT_EQ_SIZE(f.physicsSteps, 2); // capped
+    ASSERT_TRUE(f.lagging);            // accumulator still >= step before fmod
     ASSERT_NEAR(f.unscaledFrameTime, 0.05, 1e-9);
     // After fmod the remainder is near 0 (could be tiny fp noise)
     ASSERT_TRUE(f.interpolationAlpha >= 0.0 && f.interpolationAlpha < 1.0 + 1e-9);
@@ -184,27 +201,50 @@ static int test_lagging_and_max_steps(void) {
     return 0;
 }
 
-static int test_cap_and_raw_delta(void) {
+static int test_time_scale(void)
+{
+    static const long long script[] = {0LL, 0LL, 10LL * 1000 * 1000};
+    set_script(script, sizeof(script) / sizeof(script[0]));
+
     TimeManager* tm = TmCreate(NULL);
-    TmSetMaxFrameTime(tm, 0.10); // cap at 100ms
+    TmSetTimeSource(tm, fake_now_script); // Called once here
+    TmSetTimeScale(tm, 0.5);
 
-    // 0ns, 0ns, then +1.5s raw -> raw should be 1.5, unscaled gets capped to 0.10
-    static const long long script[] = { 0LL, 0LL, 1500LL*1000*1000 };
-    set_script(script, sizeof(script)/sizeof(script[0]));
-    TmSetTimeSource(tm, fake_now_script);
+    (void)TmBeginFrame(tm); // first frame
 
-    (void)TmBeginFrame(tm);
-    FrameTimingData f = TmBeginFrame(tm);
-    ASSERT_NEAR(f.rawFrameTime,      1.5, 1e-12);
-    ASSERT_NEAR(f.unscaledFrameTime, 0.10, 1e-12);  // capped
-    ASSERT_NEAR(f.frameTime,         0.10, 1e-12);  // scale=1.0
+    FrameTimingData frame = TmBeginFrame(tm);
+    ASSERT_NEAR(frame.currentTimeScale, 0.5, 1e-8);
+    ASSERT_NEAR(frame.rawFrameTime, 0.01, 1e-12);
+    ASSERT_NEAR(frame.frameTime, 0.005, 1e-12);
 
     TmDestroy(tm);
 
     return 0;
 }
 
-static int test_pause_resume(void) {
+static int test_cap_and_raw_delta(void)
+{
+    TimeManager* tm = TmCreate(NULL);
+    TmSetMaxFrameTime(tm, 0.10); // cap at 100ms
+
+    // 0ns, 0ns, then +1.5s raw -> raw should be 1.5, unscaled gets capped to 0.10
+    static const long long script[] = {0LL, 0LL, 1500LL * 1000 * 1000};
+    set_script(script, sizeof(script) / sizeof(script[0]));
+    TmSetTimeSource(tm, fake_now_script);
+
+    (void)TmBeginFrame(tm);
+    FrameTimingData f = TmBeginFrame(tm);
+    ASSERT_NEAR(f.rawFrameTime, 1.5, 1e-12);
+    ASSERT_NEAR(f.unscaledFrameTime, 0.10, 1e-12); // capped
+    ASSERT_NEAR(f.frameTime, 0.10, 1e-12);         // scale=1.0
+
+    TmDestroy(tm);
+
+    return 0;
+}
+
+static int test_pause_resume(void)
+{
     TimeManager* tm = TmCreate(NULL);
     TmSetTimeScale(tm, 0.5);
     TmPause(tm);
@@ -215,16 +255,20 @@ static int test_pause_resume(void) {
     return 0;
 }
 
-static int test_average_fps(void) {
+static int test_average_fps(void)
+{
     // Use steady 20ms frames → exactly 50 frames per second when summed to 1.0s+
     TimeManager* tm = TmCreate(NULL);
-    set_steady(0LL, 20LL*1000*1000);
+    set_steady(0LL, 20LL * 1000 * 1000);
     TmSetTimeSource(tm, fake_now_steady);
 
     (void)TmBeginFrame(tm); // first frame (zero)
 
     // Drive a bit over 1 second of frames so stats roll
-    for (int i = 0; i < 52; ++i) { (void)TmBeginFrame(tm); }
+    for (int i = 0; i < 52; ++i)
+    {
+        (void)TmBeginFrame(tm);
+    }
 
     double avg = TmGetAverageFps(tm);
     ASSERT_NEAR(avg, 50.0, 0.75); // allow a little fp noise/timing granularity
@@ -233,13 +277,22 @@ static int test_average_fps(void) {
     return 0;
 }
 
-int main(void) {
+int main(void)
+{
     int rc = 0;
-    if ((rc = test_defaults_and_setters()))      return rc;
-    if ((rc = test_first_frame_and_basic_stepping())) return rc;
-    if ((rc = test_lagging_and_max_steps()))     return rc;
-    if ((rc = test_cap_and_raw_delta()))         return rc;
-    if ((rc = test_pause_resume()))              return rc;
-    if ((rc = test_average_fps()))               return rc;
+    if ((rc = test_defaults_and_setters()))
+        return rc;
+    if ((rc = test_first_frame_and_basic_stepping()))
+        return rc;
+    if ((rc = test_lagging_and_max_steps()))
+        return rc;
+    if ((rc = test_time_scale()))
+        return rc;
+    if ((rc = test_cap_and_raw_delta()))
+        return rc;
+    if ((rc = test_pause_resume()))
+        return rc;
+    if ((rc = test_average_fps()))
+        return rc;
     return 0;
 }
