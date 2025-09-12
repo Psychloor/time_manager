@@ -35,18 +35,18 @@ This library implements the widely accepted solution: running physics at a fixed
 ```c
 // Good: Each thread has its own TimeManager
 void* physics_thread(void* arg) {
-    TimeManager* tm = TmCreate();
+    TimeManager* tm = TmCreate(NULL);
     // ... use tm only in this thread
 }
 
 void* ai_thread(void* arg) {
-    TimeManager* tm = TmCreate();
+    TimeManager* tm = TmCreate(NULL);
     // ... use tm only in this thread
 }
 
 // Also good: Single-threaded game loop
 int main() {
-    TimeManager* tm = TmCreate();
+    TimeManager* tm = TmCreate(NULL);
     
     while (running) {
         FrameTimingData frame = TmBeginFrame(tm);
@@ -103,6 +103,13 @@ void render(GameObject* obj, double alpha) {
 
 int main() {
     // Initialize time manager
+    // Optional: Pass config struct to configure defaults
+    // TimeManagerConfig config = {
+    //     .physicsHz = 60,
+    //     .maxFrameTime = 0.25,
+    //     .maxPhysicsSteps = 5,
+    // };
+    // TimeManager* tm = TmCreate(&config);
     TimeManager* tm = TmCreate(NULL);
     
     // Optional: Configure physics rate (default is 60 Hz)
