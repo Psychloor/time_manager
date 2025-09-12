@@ -50,12 +50,34 @@ static void set_steady(long long start_ns, long long step_ns) {
 // ---------- tests ----------
 static int test_defaults_and_setters(void) {
     TimeManager* tm = TmCreate(); // default clock inside
-    // initial values from your implementation
     ASSERT_EQ_SIZE(TmGetPhysicsHz(tm), 60);                      // default 60 Hz
     ASSERT_NEAR(TmGetPhysicsTimeStep(tm), 1.0/60.0, 1e-12);      // derived from Hz
     ASSERT_NEAR(TmGetMaxFrameTime(tm), 0.25, 1e-12);             // default cap
     ASSERT_EQ_SIZE(TmGetMaxPhysicsSteps(tm), 5);                 // default 5
     ASSERT_NEAR(TmGetTimeScale(tm), 1.0, 1e-12);                 // default 1x
+
+    // null config
+    TmDestroy(tm);
+    tm = TmCreateWithConfig(NULL);
+    ASSERT_EQ_SIZE(TmGetPhysicsHz(tm), 60);                      // default 60 Hz
+    ASSERT_NEAR(TmGetPhysicsTimeStep(tm), 1.0/60.0, 1e-12);      // derived from Hz
+    ASSERT_NEAR(TmGetMaxFrameTime(tm), 0.25, 1e-12);             // default cap
+    ASSERT_EQ_SIZE(TmGetMaxPhysicsSteps(tm), 5);                 // default 5
+    ASSERT_NEAR(TmGetTimeScale(tm), 1.0, 1e-12);                 // default 1x
+
+    // set config
+    TimeManagerConfig config = {
+        .physicsHz = 120,
+        .maxPhysicsSteps = 10,
+        .maxFrameTime = 0.1,
+    };
+    TmDestroy(tm);
+    tm = TmCreateWithConfig(&config);
+    ASSERT_EQ_SIZE(TmGetPhysicsHz(tm), 120);
+    ASSERT_NEAR(TmGetPhysicsTimeStep(tm), 1.0/120.0, 1e-12);
+    ASSERT_NEAR(TmGetMaxFrameTime(tm), 0.1, 1e-12);
+    ASSERT_EQ_SIZE(TmGetMaxPhysicsSteps(tm), 10);
+    ASSERT_NEAR(TmGetTimeScale(tm), 1.0, 1e-12);
 
     // Set via Hz
     TmSetPhysicsHz(tm, 120);
@@ -89,6 +111,8 @@ static int test_defaults_and_setters(void) {
     TmSetPhysicsTimeStep(tm, 0.0);   // should be ignored
     ASSERT_NEAR(TmGetPhysicsTimeStep(tm), before_dt, 1e-12);
     ASSERT_EQ_SIZE(TmGetPhysicsHz(tm), before_hz);
+
+    TmDestroy(tm);
 
     return 0;
 }
@@ -125,6 +149,8 @@ static int test_first_frame_and_basic_stepping(void) {
     ASSERT_TRUE(!f2.lagging);
     ASSERT_NEAR(f2.unscaledFrameTime, 0.016, 1e-6);
 
+    TmDestroy(tm);
+
     return 0;
 }
 
@@ -148,6 +174,8 @@ static int test_lagging_and_max_steps(void) {
     // After fmod the remainder is near 0 (could be tiny fp noise)
     ASSERT_TRUE(f.interpolationAlpha >= 0.0 && f.interpolationAlpha < 1.0 + 1e-9);
 
+    TmDestroy(tm);
+
     return 0;
 }
 
@@ -166,6 +194,8 @@ static int test_cap_and_raw_delta(void) {
     ASSERT_NEAR(f.unscaledFrameTime, 0.10, 1e-12);  // capped
     ASSERT_NEAR(f.frameTime,         0.10, 1e-12);  // scale=1.0
 
+    TmDestroy(tm);
+
     return 0;
 }
 
@@ -176,6 +206,7 @@ static int test_pause_resume(void) {
     ASSERT_TRUE(TmIsPaused(tm));
     TmResume(tm);
     ASSERT_NEAR(TmGetTimeScale(tm), 0.5, 1e-12);
+    TmDestroy(tm);
     return 0;
 }
 
@@ -192,6 +223,8 @@ static int test_average_fps(void) {
 
     double avg = TmGetAverageFps(tm);
     ASSERT_NEAR(avg, 50.0, 0.75); // allow a little fp noise/timing granularity
+
+    TmDestroy(tm);
     return 0;
 }
 
