@@ -3,16 +3,25 @@ project(time_manager C)
 
 set(CMAKE_C_STANDARD 23)
 
+option(TIME_MANAGER_BUILD_SHARED "Build time_manager as a shared library" ON)
+
 set(TIMEMANAGER_SOURCES
-        src/time_manager.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/time_manager.c
 )
 
 set(TIMEMANAGER_HEADERS
-        include/time_manager/time_manager.h
-        include/time_manager/utils/time_utils.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/time_manager/time_manager.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/time_manager/utils/time_utils.h
 )
 
-add_library(${PROJECT_NAME} SHARED)
+if(TIME_MANAGER_BUILD_SHARED)
+    add_library(${PROJECT_NAME} SHARED)
+else()
+    add_library(${PROJECT_NAME} STATIC)
+    # Consumers of the static lib need this define to disable dllimport/visibility
+    target_compile_definitions(${PROJECT_NAME} PUBLIC TIME_MANAGER_STATIC)
+endif()
+
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 # Make symbols hidden by default on GCC/Clang; export only what you mark
@@ -69,3 +78,4 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
             DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
     )
 endif()
+
