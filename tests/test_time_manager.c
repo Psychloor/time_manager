@@ -31,7 +31,7 @@ static HighResTimeT fake_now_script(void)
         t.nanoseconds = 0;
         return t;
     }
-    size_t i = (g_script_idx < g_script_len) ? g_script_idx++ : (g_script_len - 1);
+    const size_t i = (g_script_idx < g_script_len) ? g_script_idx++ : (g_script_len - 1);
     t.nanoseconds = g_script[i];
     return t;
 }
@@ -126,8 +126,8 @@ static int test_defaults_and_setters(void)
     TmSetMaxPhysicsSteps(tm, 0);
     ASSERT_TRUE(TmGetMaxPhysicsSteps(tm) >= 1);
 
-    double before_dt = TmGetPhysicsTimeStep(tm);
-    size_t before_hz = TmGetPhysicsHz(tm);
+    const double before_dt = TmGetPhysicsTimeStep(tm);
+    const size_t before_hz = TmGetPhysicsHz(tm);
     TmSetPhysicsTimeStep(tm, 0.0); // should be ignored
     ASSERT_NEAR(TmGetPhysicsTimeStep(tm), before_dt, 1e-12);
     ASSERT_EQ_SIZE(TmGetPhysicsHz(tm), before_hz);
@@ -146,7 +146,7 @@ static int test_first_frame_and_basic_stepping(void)
     TmSetTimeSource(tm, fake_now_script); // resets lastTime to script[0] per header/impl
 
     // 1) first frame is special: zeros & sets lastTime to script[1]
-    FrameTimingData f0 = TmBeginFrame(tm);
+    const FrameTimingData f0 = TmBeginFrame(tm);
     ASSERT_EQ_SIZE(f0.physicsSteps, 0);
     ASSERT_NEAR(f0.fixedTimestep, 1.0/60.0, 1e-12);
     ASSERT_NEAR(f0.interpolationAlpha, 0.0, 1e-12);
@@ -157,7 +157,7 @@ static int test_first_frame_and_basic_stepping(void)
     ASSERT_NEAR(f0.currentTimeScale, 1.0, 1e-12);
 
     // 2) delta = 16ms -> with 60Hz timestep (~16.666ms), 0 physics steps; alpha ~ 0.96
-    FrameTimingData f1 = TmBeginFrame(tm);
+    const FrameTimingData f1 = TmBeginFrame(tm);
     ASSERT_EQ_SIZE(f1.physicsSteps, 0);
     ASSERT_TRUE(!f1.lagging);
     ASSERT_NEAR(f1.unscaledFrameTime, 0.016, 1e-6);
@@ -165,7 +165,7 @@ static int test_first_frame_and_basic_stepping(void)
     ASSERT_TRUE(f1.interpolationAlpha > 0.9 && f1.interpolationAlpha < 1.0);
 
     // 3) next 16ms pushes us over one step -> 1 physics step this frame
-    FrameTimingData f2 = TmBeginFrame(tm);
+    const FrameTimingData f2 = TmBeginFrame(tm);
     ASSERT_EQ_SIZE(f2.physicsSteps, 1);
     ASSERT_TRUE(!f2.lagging);
     ASSERT_NEAR(f2.unscaledFrameTime, 0.016, 1e-6);
@@ -189,7 +189,7 @@ static int test_lagging_and_max_steps(void)
 
     (void)TmBeginFrame(tm); // first frame
 
-    FrameTimingData f = TmBeginFrame(tm);
+    const FrameTimingData f = TmBeginFrame(tm);
     ASSERT_EQ_SIZE(f.physicsSteps, 2); // capped
     ASSERT_TRUE(f.lagging);            // accumulator still >= step before fmod
     ASSERT_NEAR(f.unscaledFrameTime, 0.05, 1e-9);
@@ -212,7 +212,7 @@ static int test_time_scale(void)
 
     (void)TmBeginFrame(tm); // first frame
 
-    FrameTimingData frame = TmBeginFrame(tm);
+    const FrameTimingData frame = TmBeginFrame(tm);
     ASSERT_NEAR(frame.currentTimeScale, 0.5, 1e-8);
     ASSERT_NEAR(frame.rawFrameTime, 0.01, 1e-12);
     ASSERT_NEAR(frame.frameTime, 0.005, 1e-12);
@@ -233,7 +233,7 @@ static int test_cap_and_raw_delta(void)
     TmSetTimeSource(tm, fake_now_script);
 
     (void)TmBeginFrame(tm);
-    FrameTimingData f = TmBeginFrame(tm);
+    const FrameTimingData f = TmBeginFrame(tm);
     ASSERT_NEAR(f.rawFrameTime, 1.5, 1e-12);
     ASSERT_NEAR(f.unscaledFrameTime, 0.10, 1e-12); // capped
     ASSERT_NEAR(f.frameTime, 0.10, 1e-12);         // scale=1.0
@@ -270,7 +270,7 @@ static int test_average_fps(void)
         (void)TmBeginFrame(tm);
     }
 
-    double avg = TmGetAverageFps(tm);
+    const double avg = TmGetAverageFps(tm);
     ASSERT_NEAR(avg, 50.0, 0.75); // allow a little fp noise/timing granularity
 
     TmDestroy(tm);

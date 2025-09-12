@@ -121,7 +121,7 @@ int main() {
     // Game loop
     while (running) {
         // Begin frame and get timing data
-        FrameTimingData frame = TmBeginFrame(tm);
+        const FrameTimingData frame = TmBeginFrame(tm);
         
         // Perform fixed timestep physics updates
         for (size_t i = 0; i < frame.physicsSteps; i++) {
