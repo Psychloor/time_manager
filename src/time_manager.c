@@ -56,9 +56,6 @@ void UpdateFpsStats(TimeManager* tm, const double frameTime)
 
 void InitTimeManager(TimeManager* tm, const TimeManagerConfig* config)
 {
-    assert(tm != NULL && "TimeManager pointer is null!");
-    assert(config != NULL && "TimeManagerConfig pointer is null!");
-
     tm->physicsHz = config->physicsHz > 0 ? config->physicsHz : 60;
     tm->physicsTimeStep = 1.0 / (double)tm->physicsHz;
     tm->maxFrameTime = config->maxFrameTime > 0.0 ? config->maxFrameTime : 0.25;
@@ -177,7 +174,7 @@ void TmSetPhysicsHz(TimeManager* tm, const size_t physicsHz)
 void TmSetPhysicsTimeStep(TimeManager* tm, const double physicsTimeStep)
 {
     assert(tm != NULL && "TimeManager pointer is null!");
-    if (physicsTimeStep <= 0.0)
+    if (physicsTimeStep <= DBL_EPSILON)
     {
         return;
     }
@@ -291,7 +288,7 @@ void TmPause(TimeManager* tm)
 void TmResume(TimeManager* tm)
 {
     assert(tm != NULL && "TimeManager pointer is null!");
-    tm->timeScale = tm->timeScaleBeforePause;
+    tm->timeScale = tm->timeScaleBeforePause > 0.0 ? tm->timeScaleBeforePause : 1.0;
 }
 
 bool TmIsPaused(const TimeManager* tm)
