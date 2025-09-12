@@ -159,6 +159,8 @@ lagging = stepsD > maxPhysicsSteps
 steps = lagging ? maxPhysicsSteps : stepsD
 
 remainder = fmod(accumulator, physicsTimestep)
+if remainder < 0)
+    remainder += physicsTimestep
 accumulator = remainder # preserve only the < dt remainder
 
 alpha = accumulator / physicsTimestep
