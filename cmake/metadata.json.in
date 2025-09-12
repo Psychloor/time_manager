@@ -1,0 +1,8 @@
+﻿{
+  "name": "time_manager",
+  "version": "@PROJECT_VERSION@",
+  "build_type": "@CMAKE_BUILD_TYPE@",
+  "compiler": "@CMAKE_C_COMPILER_ID@ @CMAKE_C_COMPILER_VERSION@",
+  "timestamp_utc": "@CMAKE_SYSTEM_NAME@ @CMAKE_SYSTEM_PROCESSOR@",
+  "description": "@PROJECT_DESCRIPTION@"
+}

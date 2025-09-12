@@ -11,6 +11,20 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 # Options
 option(TIME_MANAGER_BUILD_SHARED "Build time_manager as a shared library" ON)
 
+# Signing and metadata options
+set(TIME_MANAGER_COMPANY_NAME "Psychloor")
+set(TIME_MANAGER_COPYRIGHT "(C) 2025 Psychloor")
+
+option(TIME_MANAGER_SIGN_WINDOWS "Sign the DLL with signtool if available" OFF)
+set(TIME_MANAGER_SIGN_WINDOWS_CERT "" CACHE FILEPATH "Path to PFX/P12 certificate for signtool")
+set(TIME_MANAGER_SIGN_WINDOWS_CERT_PASSWORD "" CACHE STRING "Password for the PFX/P12 certificate")
+set(TIME_MANAGER_SIGN_WINDOWS_TS_URL "http://timestamp.digicert.com" CACHE STRING "RFC3161 timestamp server")
+
+set(TIME_MANAGER_CODESIGN_IDENTITY "" CACHE STRING "macOS codesign identity (leave empty to skip)")
+
+option(TIME_MANAGER_EMBED_ELF_METADATA "Embed JSON metadata into ELF .so as a note section" OFF)
+
+
 # Source files
 set(TIMEMANAGER_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/src/time_manager.c
@@ -29,6 +43,7 @@ if(TIME_MANAGER_BUILD_SHARED)
 else()
     add_library(${PROJECT_NAME} STATIC)
     target_compile_definitions(${PROJECT_NAME} PUBLIC TIME_MANAGER_STATIC)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC TIME_MANAGER_STATIC_DEFINE)
     message(STATUS "Building time_manager as STATIC library")
 endif()
 
@@ -84,7 +99,15 @@ if(UNIX AND NOT APPLE)
     if(HAVE_CLOCK_GETTIME_IN_RT)
         target_link_libraries(${PROJECT_NAME} PRIVATE rt)
     endif()
+
+    # Ensure ELF build-id is present (helps traceability)
+    include(CheckLinkerFlag)
+    check_linker_flag(C "-Wl,--build-id=sha1" HAS_LD_BUILD_ID)
+    if(HAS_LD_BUILD_ID)
+        target_link_options(${PROJECT_NAME} PRIVATE -Wl,--build-id=sha1)
+    endif()
 endif()
+
 
 # Compiler-specific flags
 if(MSVC)
@@ -97,6 +120,87 @@ else()
         target_compile_options(${PROJECT_NAME} PRIVATE -O3)
     endif()
 endif()
+
+# -------------------------
+# Windows: embed VERSIONINFO and sign (optional)
+# -------------------------
+if(WIN32 AND BUILD_SHARED_LIBS)
+    # Configure a version resource to embed file/product version and strings
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/time_manager.rc.in
+        ${CMAKE_CURRENT_BINARY_DIR}/time_manager.rc
+        @ONLY
+    )
+    target_sources(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/time_manager.rc)
+
+    if(TIME_MANAGER_SIGN_WINDOWS)
+        find_program(SIGNTOOL_EXECUTABLE
+            NAMES signtool signtool.exe
+            DOC "Path to signtool.exe (set manually if not on PATH)"
+        )
+        if(NOT SIGNTOOL_EXECUTABLE)
+            message(WARNING "TIME_MANAGER_SIGN_WINDOWS=ON but signtool.exe not found. Skipping signing.")
+        elseif(NOT EXISTS "${TIME_MANAGER_SIGN_WINDOWS_CERT}")
+            message(WARNING "TIME_MANAGER_SIGN_WINDOWS=ON but certificate not found at: ${TIME_MANAGER_SIGN_WINDOWS_CERT}")
+        else()
+            add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND "${SIGNTOOL_EXECUTABLE}" sign
+                        /fd SHA256
+                        /tr "${TIME_MANAGER_SIGN_WINDOWS_TS_URL}"
+                        /td SHA256
+                        /f "${TIME_MANAGER_SIGN_WINDOWS_CERT}"
+                        $<$<BOOL:${TIME_MANAGER_SIGN_WINDOWS_CERT_PASSWORD}>:/p> $<$<BOOL:${TIME_MANAGER_SIGN_WINDOWS_CERT_PASSWORD}>:${TIME_MANAGER_SIGN_WINDOWS_CERT_PASSWORD}>
+                        "$<TARGET_FILE:${PROJECT_NAME}>"
+                COMMENT "Signing $<TARGET_FILE_NAME:${PROJECT_NAME}> with signtool"
+                VERBATIM
+            )
+        endif()
+    endif()
+endif()
+
+# -------------------------
+# macOS: codesign (optional)
+# -------------------------
+if(APPLE AND BUILD_SHARED_LIBS)
+    if(TIME_MANAGER_CODESIGN_IDENTITY)
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND codesign --force --timestamp --sign "${TIME_MANAGER_CODESIGN_IDENTITY}" "$<TARGET_FILE:${PROJECT_NAME}>"
+                COMMENT "codesign $<TARGET_FILE_NAME:${PROJECT_NAME}> with identity '${TIME_MANAGER_CODESIGN_IDENTITY}'"
+                VERBATIM
+        )
+    endif()
+endif()
+
+# -------------------------
+# Linux/ELF: embed metadata as a note section (optional)
+# -------------------------
+if(UNIX AND NOT APPLE AND BUILD_SHARED_LIBS AND TIME_MANAGER_EMBED_ELF_METADATA)
+    # Prepare a small JSON metadata blob and place it into a custom ELF note section
+    configure_file(
+            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/metadata.json.in
+            ${CMAKE_CURRENT_BINARY_DIR}/time_manager_metadata.json
+            @ONLY
+    )
+
+    # Find objcopy
+    if(NOT CMAKE_OBJCOPY)
+        find_program(CMAKE_OBJCOPY NAMES objcopy llvm-objcopy)
+    endif()
+
+    if(CMAKE_OBJCOPY)
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND "${CMAKE_OBJCOPY}"
+                --add-section .note.time_manager=${CMAKE_CURRENT_BINARY_DIR}/time_manager_metadata.json
+                --set-section-flags .note.time_manager=readonly,data,alloc
+                "$<TARGET_FILE:${PROJECT_NAME}>"
+                COMMENT "Embedding JSON metadata into ELF note section .note.time_manager"
+                VERBATIM
+        )
+    else()
+        message(WARNING "TIME_MANAGER_EMBED_ELF_METADATA=ON but objcopy not found. Skipping ELF note embedding.")
+    endif()
+endif()
+
 
 # Installation (only if this is the main project)
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
