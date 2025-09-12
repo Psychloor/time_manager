@@ -23,6 +23,22 @@ typedef struct TimeManager TimeManager;
 
 typedef struct
 {
+    size_t physicsHz;
+    size_t maxPhysicsSteps;
+    double maxFrameTime;
+} TimeManagerConfig;
+
+static inline TimeManagerConfig TmDefaultConfig(void)
+{
+    return (TimeManagerConfig){
+        .physicsHz = 60,
+        .maxPhysicsSteps = 5,
+        .maxFrameTime = 0.25,
+    };
+}
+
+typedef struct
+{
     /**
      * @brief Represents the number of physics simulation steps that occurred during the current frame.
      *
@@ -115,6 +131,19 @@ typedef struct
  * if memory allocation fails.
  */
 TIME_MANAGER_API TimeManager* TmCreate(void);
+
+/**
+ * @brief Creates and initializes a new TimeManager instance using the provided configuration.
+ *
+ * This function allocates memory for a TimeManager object and initializes it with settings
+ * from the given TimeManagerConfig. If a null configuration is provided, it uses default
+ * configuration values.
+ *
+ * @param config Pointer to a TimeManagerConfig structure containing configuration settings
+ *               for the TimeManager. If null, default values are used.
+ * @return Pointer to the newly created TimeManager instance, or null if memory allocation fails.
+ */
+TIME_MANAGER_API TimeManager* TmCreateWithConfig(const TimeManagerConfig* config);
 
 /**
  * @brief Frees the memory allocated for a TimeManager instance.

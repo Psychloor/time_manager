@@ -9,11 +9,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-#define DEFAULT_PHYSICS_HZ 60
-#define DEFAULT_PHYSICS_TIME_STEP (1.0 / DEFAULT_PHYSICS_HZ)
-#define DEFAULT_MAX_FRAME_TIME 0.25
-#define DEFAULT_MAX_PHYSICS_STEPS 5
-
 struct TimeManager
 {
     size_t physicsHz;
@@ -59,13 +54,18 @@ void UpdateFpsStats(TimeManager* tm, const double frameTime)
     }
 }
 
-void InitTimeManager(TimeManager* tm)
+void InitTimeManager(TimeManager* tm, const TimeManagerConfig* config)
 {
     assert(tm != NULL && "TimeManager pointer is null!");
-    tm->physicsHz = DEFAULT_PHYSICS_HZ;
-    tm->physicsTimeStep = DEFAULT_PHYSICS_TIME_STEP;
-    tm->maxFrameTime = DEFAULT_MAX_FRAME_TIME;
-    tm->maxPhysicsSteps = DEFAULT_MAX_PHYSICS_STEPS;
+    assert(config != NULL && "TimeManagerConfig pointer is null!");
+    assert(config->physicsHz > 0 && "PhysicsHz must be > 0");
+    assert(config->maxFrameTime > 0.0 && "MaxFrameTime must be > 0.0");
+    assert(config->maxPhysicsSteps > 0 && "MaxPhysicsSteps must be > 0");
+
+    tm->physicsHz = config->physicsHz;
+    tm->physicsTimeStep = 1.0 / (double)tm->physicsHz;
+    tm->maxFrameTime = config->maxFrameTime;
+    tm->maxPhysicsSteps = config->maxPhysicsSteps;
     tm->timeScale = 1.0;
     tm->accumulator = 0.0;
     tm->now = GetHighResolutionTime;
@@ -81,13 +81,38 @@ void InitTimeManager(TimeManager* tm)
 TimeManager* TmCreate(void)
 {
     TimeManager* tm = calloc(1, sizeof(TimeManager));
-    if (tm) { InitTimeManager(tm); }
+    if (tm)
+    {
+        const TimeManagerConfig defaultConfig = TmDefaultConfig();
+        InitTimeManager(tm, &defaultConfig);
+    }
+    return tm;
+}
+
+TimeManager* TmCreateWithConfig(const TimeManagerConfig* config)
+{
+    TimeManager* tm = calloc(1, sizeof(TimeManager));
+    if (tm)
+    {
+        if (!config)
+        {
+            const TimeManagerConfig defaultConfig = TmDefaultConfig();
+            InitTimeManager(tm, &defaultConfig);
+        }
+        else
+        {
+            InitTimeManager(tm, config);
+        }
+    }
     return tm;
 }
 
 void TmDestroy(TimeManager* tm)
 {
-    if (tm == NULL) { return; }
+    if (tm == NULL)
+    {
+        return;
+    }
     free(tm);
 }
 
@@ -112,11 +137,10 @@ FrameTimingData TmBeginFrame(TimeManager* tm)
     assert(tm->physicsTimeStep > 0.0 && "physicsTimeStep must be > 0");
 
     const HighResTimeT currentTime = tm->now();
-    tm->lastTime = currentTime;
-
     const double deltaTime = fmax((double)(currentTime.nanoseconds - tm->lastTime.nanoseconds) / 1000000000.0, 0.0);
     const double cappedDeltaTime = fmin(deltaTime, tm->maxFrameTime);
     const double scaledFrameTime = cappedDeltaTime * tm->timeScale;
+    tm->lastTime = currentTime;
     tm->accumulator += scaledFrameTime;
 
     const double stepsD = floor((tm->accumulator + 1e-12) / tm->physicsTimeStep);
@@ -125,7 +149,10 @@ FrameTimingData TmBeginFrame(TimeManager* tm)
     tm->physicsStepsThisFrame = steps;
 
     double remainder = fmod(tm->accumulator, tm->physicsTimeStep);
-    if (remainder < 0.0) { remainder += tm->physicsTimeStep; }
+    if (remainder < 0.0)
+    {
+        remainder += tm->physicsTimeStep;
+    }
 
     tm->accumulator = remainder;
 
@@ -146,7 +173,7 @@ FrameTimingData TmBeginFrame(TimeManager* tm)
     };
 }
 
-void TmSetPhysicsHz(TimeManager* tm,const size_t physicsHz)
+void TmSetPhysicsHz(TimeManager* tm, const size_t physicsHz)
 {
     assert(tm != NULL && "TimeManager pointer is null!");
     if (physicsHz == 0)
@@ -170,20 +197,20 @@ void TmSetPhysicsTimeStep(TimeManager* tm, const double physicsTimeStep)
     tm->physicsHz = (size_t)(1.0 / physicsTimeStep);
 }
 
-void TmSetMaxFrameTime(TimeManager* tm,const double maxFrameTime)
+void TmSetMaxFrameTime(TimeManager* tm, const double maxFrameTime)
 {
     assert(tm != NULL && "TimeManager pointer is null!");
     assert(maxFrameTime > 0.0 && "MaxFrameTime must be positive!");
     tm->maxFrameTime = fmax(maxFrameTime, DBL_EPSILON);
 }
 
-void TmSetMaxPhysicsSteps(TimeManager* tm,const size_t maxPhysicsSteps)
+void TmSetMaxPhysicsSteps(TimeManager* tm, const size_t maxPhysicsSteps)
 {
     assert(tm != NULL && "TimeManager pointer is null!");
     tm->maxPhysicsSteps = maxPhysicsSteps > 0 ? maxPhysicsSteps : 1;
 }
 
-void TmSetTimeScale(TimeManager* tm,const double timeScale)
+void TmSetTimeScale(TimeManager* tm, const double timeScale)
 {
     assert(tm != NULL && "TimeManager pointer is null!");
     assert(timeScale >= 0.0 && "TimeScale must be non-negative!");
