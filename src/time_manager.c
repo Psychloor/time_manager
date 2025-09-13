@@ -10,31 +10,33 @@
 #include <stdlib.h>
 #include <string.h>
 
+static const double NANOSECONDS_PER_SECOND = 1000000000.0;
+static const double FPS_CALCULATION_THRESHOLD = 1.0; // seconds
+static const double FLOATING_POINT_EPSILON = 1e-12;
+
 struct TimeManager
 {
-    size_t physicsHz;
-    double physicsTimeStep;
-    double maxFrameTime;
-    size_t maxPhysicsSteps;
-
+    // Hot path variables (accessed every frame) - group together
     double accumulator;
-    HighResTimeT lastTime;
-
-    bool firstFrame;
+    double physicsTimeStep;
     double timeScale;
+    HighResTimeT lastTime;
+    HighResTimeT (*now)(void);
+    double maxFrameTime;
 
-    double timeScaleBeforePause;
-
-    // Debug Stats
+    // Configuration (accessed less frequently)
+    size_t physicsHz;
+    size_t maxPhysicsSteps;
     size_t physicsStepsThisFrame;
-    double averageFps;
 
-    // Average
+    // Statistics (accessed even less frequently)
+    double averageFps;
     double fpsAccumulator;
     size_t fpsFrameCount;
+    double timeScaleBeforePause;
 
-    // Time source
-    HighResTimeT (*now)(void);
+    // Flags (pack together at the end)
+    bool firstFrame;
 };
 
 static inline double Clamp(const double x, const double min, const double max)
@@ -47,7 +49,7 @@ void UpdateFpsStats(TimeManager* tm, const double frameTime)
     tm->fpsAccumulator += frameTime;
     tm->fpsFrameCount++;
 
-    if (tm->fpsAccumulator >= 1.0)
+    if (tm->fpsAccumulator >= FPS_CALCULATION_THRESHOLD)
     {
         tm->averageFps = (double)tm->fpsFrameCount / tm->fpsAccumulator;
         tm->fpsAccumulator = 0.0;
@@ -124,14 +126,14 @@ FrameTimingData TmBeginFrame(TimeManager* tm)
     assert(tm->physicsTimeStep > 0.0 && "physicsTimeStep must be > 0");
 
     const HighResTimeT currentTime = tm->now();
-    const double deltaTime = fmax((double)(currentTime.nanoseconds - tm->lastTime.nanoseconds) / 1000000000.0,
+    const double deltaTime = fmax((double)(currentTime.nanoseconds - tm->lastTime.nanoseconds) / NANOSECONDS_PER_SECOND,
                                   DBL_EPSILON);
     const double cappedDeltaTime = fmin(deltaTime, tm->maxFrameTime);
     const double scaledFrameTime = cappedDeltaTime * tm->timeScale;
     tm->lastTime = currentTime;
     tm->accumulator += scaledFrameTime;
 
-    const double stepsD = floor((tm->accumulator + 1e-12) / tm->physicsTimeStep);
+    const double stepsD = floor((tm->accumulator + FLOATING_POINT_EPSILON) / tm->physicsTimeStep);
     const bool lagging = stepsD > (double)tm->maxPhysicsSteps;
     const size_t steps = lagging ? tm->maxPhysicsSteps : (size_t)stepsD;
     tm->physicsStepsThisFrame = steps;
