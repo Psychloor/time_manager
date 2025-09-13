@@ -1,12 +1,19 @@
 cmake_minimum_required(VERSION 3.4...4.0)
 
 project(time_manager
-        VERSION 1.0.0
+        VERSION 1.1.0
         DESCRIPTION "A robust game timing and physics simulation library"
         LANGUAGES C
 )
 
 set(CMAKE_C_STANDARD_REQUIRED ON)
+
+# Set default build type if not specified
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    message(STATUS "Setting build type to 'Release' as none was specified.")
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+endif()
 
 # Options
 option(TIME_MANAGER_BUILD_SHARED "Build time_manager as a shared library" ON)
