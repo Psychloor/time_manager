@@ -37,11 +37,13 @@ This library implements the widely accepted solution: running physics at a fixed
 void* physics_thread(void* arg) {
     TimeManager* tm = TmCreate(NULL);
     // ... use tm only in this thread
+    TmDestroy(tm);
 }
 
 void* ai_thread(void* arg) {
     TimeManager* tm = TmCreate(NULL);
     // ... use tm only in this thread
+    TmDestroy(tm);
 }
 
 // Also good: Single-threaded game loop
@@ -52,6 +54,7 @@ int main() {
         FrameTimingData frame = TmBeginFrame(tm);
         // All timing happens on main thread
     }
+    TmDestroy(tm);
 }
 ```
 ## Building
